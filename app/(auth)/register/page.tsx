@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 export default function RegisterPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-slate-50 px-4 py-12">
+    <div className="min-h-screen flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
@@ -49,7 +49,7 @@ export default function RegisterPage() {
         <div className="mt-6 text-center text-xs text-slate-500">
           Dengan mendaftar, Anda menyetujui{" "}
           <Link href="/terms" className="text-blue-600 hover:underline">
-            Syarat & Ketentuan
+            Syarat &amp; Ketentuan
           </Link>{" "}
           dan{" "}
           <Link href="/privacy" className="text-blue-600 hover:underline">

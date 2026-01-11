@@ -5,7 +5,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { ConnectButton } from "@rainbow-me/rainbowkit"
 import { Button } from "@/components/ui/button"
-import { ShieldCheck, User, LogOut, Settings, LayoutDashboard } from "lucide-react"
+import { ShieldCheck, User, LogOut, History, LayoutDashboard } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import type { User as SupabaseUser } from "@supabase/supabase-js"
 import {
@@ -70,7 +70,13 @@ export function Navbar() {
   const getDashboardLink = () => {
     if (profile?.role === "admin") return "/admin"
     if (profile?.role === "org") return "/org"
-    return "/dashboard"
+    return "/profile" // User biasa ke profile, bukan dashboard
+  }
+
+  const getDashboardLabel = () => {
+    if (profile?.role === "admin") return "Dashboard Admin"
+    if (profile?.role === "org") return "Dashboard Organisasi"
+    return "Profil Saya" // User biasa
   }
 
   const getInitials = (name: string) => {
@@ -142,20 +148,26 @@ export function Navbar() {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
                   <Link href={getDashboardLink()} className="cursor-pointer">
-                    <LayoutDashboard className="mr-2 h-4 w-4" />
-                    <span>Dashboard</span>
+                    {profile?.role === "user" ? (
+                      <User className="mr-2 h-4 w-4" />
+                    ) : (
+                      <LayoutDashboard className="mr-2 h-4 w-4" />
+                    )}
+                    <span>{getDashboardLabel()}</span>
                   </Link>
                 </DropdownMenuItem>
+                {(profile?.role === "admin" || profile?.role === "org") && (
+                  <DropdownMenuItem asChild>
+                    <Link href="/profile" className="cursor-pointer">
+                      <User className="mr-2 h-4 w-4" />
+                      <span>Profil</span>
+                    </Link>
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem asChild>
-                  <Link href="/profile" className="cursor-pointer">
-                    <User className="mr-2 h-4 w-4" />
-                    <span>Profil</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/settings" className="cursor-pointer">
-                    <Settings className="mr-2 h-4 w-4" />
-                    <span>Pengaturan</span>
+                  <Link href="/history" className="cursor-pointer">
+                    <History className="mr-2 h-4 w-4" />
+                    <span>Riwayat Donasi</span>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />

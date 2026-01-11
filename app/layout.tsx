@@ -5,6 +5,7 @@ import { Analytics } from "@vercel/analytics/next"
 import "./globals.css"
 import { Web3Provider } from "@/components/web3-provider"
 import { Navbar } from "@/components/navbar"
+import { Toaster } from "sonner"
 
 const _geist = Geist({ subsets: ["latin"] })
 const _geistMono = Geist_Mono({ subsets: ["latin"] })
@@ -44,6 +45,7 @@ export default function RootLayout({
         <Web3Provider>
           <Navbar />
           {children}
+          <Toaster position="top-right" richColors />
         </Web3Provider>
         <Analytics />
       </body>
