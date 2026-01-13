@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+// 1. Import 'use' dari react untuk unwrap params
+import { useState, use } from "react"
 import { useRouter } from "next/navigation"
 import { campaignsData } from "@/lib/mock-campaigns"
 import { AmountSelection } from "@/components/donation/amount-selection"
@@ -16,9 +17,17 @@ interface DonationData {
   message: string
 }
 
-export default function DonatePage({ params }: { params: { campaignId: string } }) {
+// 2. Update tipe data params menjadi Promise sesuai standar Next.js terbaru
+export default function DonatePage({ params }: { params: Promise<{ campaignId: string }> }) {
   const router = useRouter()
-  const campaign = campaignsData.find((c) => c.id === params.campaignId)
+  
+  // 3. Unwrap params di sini
+  const resolvedParams = use(params)
+  const campaignId = resolvedParams.campaignId
+
+  // Gunakan campaignId yang sudah di-unwrap untuk mencari campaign
+  const campaign = campaignsData.find((c) => c.id === campaignId)
+  
   const [step, setStep] = useState<DonationStep>("amount")
   const [donationData, setDonationData] = useState<DonationData>({
     amount: 0,
@@ -44,7 +53,7 @@ export default function DonatePage({ params }: { params: { campaignId: string } 
   const handlePaymentSubmit = () => {
     setStep("processing")
 
-    // Simulate payment processing
+    // Logic simulasi tetap dipertahankan sesuai permintaanmu
     setTimeout(() => {
       const receipt = `CHD-${Date.now()}`
       const hash = `0x${Math.random().toString(16).slice(2, 66)}`
