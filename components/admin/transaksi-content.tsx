@@ -19,51 +19,68 @@ export function TransaksiContent() {
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
   const [filterType, setFilterType] = useState<"all" | "donation" | "withdrawal">("all")
+  const [autoRefresh, setAutoRefresh] = useState(true)
+  const [lastUpdate, setLastUpdate] = useState(new Date())
 
   useEffect(() => {
     loadData()
   }, [])
 
+  // Auto-refresh effect
+  useEffect(() => {
+    if (!autoRefresh) return
+
+    const interval = setInterval(() => {
+      console.log('🔄 Auto-refreshing transactions...')
+      loadData()
+    }, 30000) // 30 seconds
+
+    return () => clearInterval(interval)
+  }, [autoRefresh])
+
   const loadData = async () => {
     try {
+      console.log('📊 Loading transactions...')
       const [txData, campaignsResponse] = await Promise.all([
         getAllTransactionsFromBlockchain(),
         getCampaigns({}, { limit: 1000 })
       ])
       
+      console.log('✅ Loaded', txData.length, 'transactions')
       setTransactions(txData)
       setCampaigns(campaignsResponse.data)
+      setLastUpdate(new Date())
     } catch (error) {
-      console.error('Error loading transactions:', error)
+      console.error('❌ Error loading transactions:', error)
       toast.error("Gagal memuat data transaksi")
     } finally {
       setLoading(false)
     }
   }
 
-  const getCampaignInfo = (campaignId: string) => {
-    return campaigns.find(c => c.id === campaignId)
+  const getCampaignByAddress = (contractAddress: string) => {
+    return campaigns.find(c => c.contract_address?.toLowerCase() === contractAddress.toLowerCase())
   }
 
   const filteredTransactions = transactions.filter((tx) => {
-    const campaign = getCampaignInfo(tx.campaign_id)
+    const campaign = getCampaignByAddress(tx.contractAddress)
     const matchesSearch =
-      tx.campaign_title.toLowerCase().includes(search.toLowerCase()) ||
+      campaign?.title.toLowerCase().includes(search.toLowerCase()) ||
       campaign?.organization?.name.toLowerCase().includes(search.toLowerCase()) ||
-      tx.from_address?.toLowerCase().includes(search.toLowerCase()) ||
-      tx.to_address?.toLowerCase().includes(search.toLowerCase())
+      tx.from?.toLowerCase().includes(search.toLowerCase()) ||
+      tx.to?.toLowerCase().includes(search.toLowerCase())
     
     const matchesType = filterType === "all" || 
-      (filterType === "donation" && tx.from_address) ||
-      (filterType === "withdrawal" && tx.to_address && tx.description)
+      (filterType === "donation" && tx.from) ||
+      (filterType === "withdrawal" && tx.to && tx.description)
     
     return matchesSearch && matchesType
   })
 
   const stats = {
-    totalDonations: transactions.filter(t => t.from_address).length,
-    totalWithdrawals: transactions.filter(t => t.to_address && t.description).length,
-    totalVolume: transactions.reduce((sum, t) => sum + t.amount, 0),
+    totalDonations: transactions.filter(t => t.from).length,
+    totalWithdrawals: transactions.filter(t => t.to && t.description).length,
+    totalVolume: transactions.reduce((sum, t) => sum + parseFloat(t.amount), 0),
   }
 
   const formatDate = (timestamp: number) => {
@@ -77,17 +94,19 @@ export function TransaksiContent() {
   }
 
   const exportToCSV = () => {
-    const headers = ['Tanggal', 'Tipe', 'Campaign', 'Organisasi', 'Jumlah (ETH)', 'TX Hash']
+    const headers = ['Tanggal', 'Tipe', 'Campaign', 'Organisasi', 'Jumlah (ETH)', 'From/To', 'TX Hash']
     const rows = filteredTransactions.map(tx => {
-      const campaign = getCampaignInfo(tx.campaign_id)
-      const type = tx.from_address ? 'Donasi' : 'Penyaluran'
+      const campaign = getCampaignByAddress(tx.contractAddress)
+      const type = tx.from ? 'Donasi' : 'Penyaluran'
+      const address = tx.from || tx.to || '-'
       return [
         formatDate(tx.timestamp),
         type,
-        tx.campaign_title,
+        campaign?.title || '-',
         campaign?.organization?.name || '-',
-        weiToEth(BigInt(tx.amount)),
-        tx.tx_hash || '-'
+        tx.amount,
+        address,
+        tx.txHash || '-'
       ]
     })
 
@@ -208,6 +227,25 @@ export function TransaksiContent() {
               <option value="donation">Donasi</option>
               <option value="withdrawal">Penyaluran</option>
             </select>
+            
+            {/* Auto-refresh toggle */}
+            <div className="flex items-center gap-2 px-3 py-2 border border-border rounded-lg bg-background">
+              <input
+                type="checkbox"
+                id="auto-refresh"
+                checked={autoRefresh}
+                onChange={(e) => setAutoRefresh(e.target.checked)}
+                className="w-4 h-4 cursor-pointer"
+              />
+              <label htmlFor="auto-refresh" className="text-sm cursor-pointer select-none">
+                Auto-refresh (30s)
+              </label>
+            </div>
+            
+            {/* Last updated */}
+            <div className="text-xs text-muted-foreground px-2">
+              Last updated: {lastUpdate.toLocaleTimeString('id-ID')}
+            </div>
           </div>
 
           <div className="overflow-x-auto">
@@ -225,8 +263,8 @@ export function TransaksiContent() {
               </thead>
               <tbody>
                 {filteredTransactions.map((tx, idx) => {
-                  const campaign = getCampaignInfo(tx.campaign_id)
-                  const isDonation = !!tx.from_address
+                  const campaign = getCampaignByAddress(tx.contractAddress)
+                  const isDonation = !!tx.from
                   
                   return (
                     <tr key={idx} className="border-b border-border hover:bg-muted/50 transition-colors">
@@ -236,26 +274,26 @@ export function TransaksiContent() {
                           {isDonation ? "Donasi" : "Penyaluran"}
                         </Badge>
                       </td>
-                      <td className="py-3 px-4 text-sm text-foreground max-w-xs truncate">{tx.campaign_title}</td>
+                      <td className="py-3 px-4 text-sm text-foreground max-w-xs truncate">{campaign?.title || '-'}</td>
                       <td className="py-3 px-4 text-sm text-foreground">{campaign?.organization?.name || '-'}</td>
                       <td className="py-3 px-4 text-sm font-semibold text-foreground font-mono">
-                        {isDonation ? '+' : '-'}{weiToEth(BigInt(tx.amount))}
+                        {isDonation ? '+' : '-'}{tx.amount}
                       </td>
                       <td className="py-3 px-4 text-xs font-mono text-muted-foreground">
                         {isDonation 
-                          ? `${tx.from_address?.slice(0, 6)}...${tx.from_address?.slice(-4)}`
-                          : `${tx.to_address?.slice(0, 6)}...${tx.to_address?.slice(-4)}`
+                          ? `${tx.from?.slice(0, 6)}...${tx.from?.slice(-4)}`
+                          : `${tx.to?.slice(0, 6)}...${tx.to?.slice(-4)}`
                         }
                       </td>
                       <td className="py-3 px-4 text-sm text-foreground">
-                        {tx.tx_hash ? (
+                        {tx.txHash ? (
                           <a
-                            href={`https://sepolia.etherscan.io/tx/${tx.tx_hash}`}
+                            href={`https://sepolia.etherscan.io/tx/${tx.txHash}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="flex items-center gap-1 text-primary hover:underline font-mono text-xs"
                           >
-                            {tx.tx_hash.slice(0, 10)}...
+                            {tx.txHash.slice(0, 10)}...
                             <ExternalLink className="w-3 h-3" />
                           </a>
                         ) : (

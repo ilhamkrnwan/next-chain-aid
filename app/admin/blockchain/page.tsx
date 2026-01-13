@@ -5,16 +5,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Zap, Shield, LinkIcon, ExternalLink, Activity, TrendingUp, Wallet } from "lucide-react"
-import { getBlockchainStats, getAllTransactionsFromBlockchain } from "@/lib/admin-blockchain"
-import { weiToEth } from "@/lib/blockchain"
-import { CONTRACTS } from "@/lib/blockchain"
+import { Zap, Shield, LinkIcon, ExternalLink, Activity } from "lucide-react"
+import { getBlockchainStats, getAllTransactionsFromBlockchain, getAllCampaignsWithBlockchainData } from "@/lib/admin-blockchain"
+import { weiToEth, CONTRACTS } from "@/lib/blockchain"
 import type { BlockchainTransaction } from "@/lib/types"
 import { toast } from "sonner"
+import { DebugContractViewer } from "@/components/admin/debug-contract-viewer"
+import { CampaignActions } from "@/components/admin/campaign-actions"
+import { getCampaigns } from "@/lib/api"
 
 export default function BlockchainPage() {
   const [stats, setStats] = useState<any>(null)
   const [recentTx, setRecentTx] = useState<BlockchainTransaction[]>([])
+  const [campaigns, setCampaigns] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [networkStatus, setNetworkStatus] = useState<"connected" | "disconnected">("disconnected")
 
@@ -35,16 +38,38 @@ export default function BlockchainPage() {
 
   const loadData = async () => {
     try {
-      const [blockchainStats, transactions] = await Promise.all([
+      console.log('🔍 Loading blockchain data...')
+      console.log('Factory address:', CONTRACTS.CAMPAIGN_FACTORY)
+      
+      const [blockchainStats, transactions, blockchainCampaigns, dbCampaigns] = await Promise.all([
         getBlockchainStats(),
-        getAllTransactionsFromBlockchain()
+        getAllTransactionsFromBlockchain(),
+        getAllCampaignsWithBlockchainData(),
+        getCampaigns({}, { limit: 100 })
       ])
       
+      console.log('📊 Stats:', blockchainStats)
+      console.log('💰 Transactions:', transactions.length)
+      console.log('📋 Blockchain campaigns:', blockchainCampaigns.length)
+      console.log('💾 Database campaigns:', dbCampaigns.data.length)
+      
       setStats(blockchainStats)
-      // Get 10 most recent transactions
       setRecentTx(transactions.slice(0, 10))
+      
+      // Merge blockchain and database data
+      const mergedCampaigns = dbCampaigns.data.map(dbCampaign => {
+        const blockchainData = blockchainCampaigns.find(
+          bc => bc?.contractAddress?.toLowerCase() === dbCampaign.contract_address?.toLowerCase()
+        )
+        return {
+          ...dbCampaign,
+          blockchain: blockchainData
+        }
+      })
+      
+      setCampaigns(mergedCampaigns)
     } catch (error) {
-      console.error('Error loading blockchain data:', error)
+      console.error('❌ Error loading blockchain data:', error)
       toast.error("Gagal memuat data blockchain")
     } finally {
       setLoading(false)
@@ -86,6 +111,9 @@ export default function BlockchainPage() {
         <h1 className="text-3xl font-bold text-foreground">Blockchain Explorer</h1>
         <p className="text-muted-foreground mt-1">Verifikasi dan monitor transaksi blockchain ChainAid</p>
       </div>
+
+      {/* Debug Tool (Development Only) */}
+      {process.env.NODE_ENV === 'development' && <DebugContractViewer />}
 
       {/* Network Status */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -228,7 +256,7 @@ export default function BlockchainPage() {
           ) : (
             <div className="space-y-3">
               {recentTx.map((tx, idx) => {
-                const isDonation = !!tx.from_address
+                const isDonation = !!tx.from
                 return (
                   <div key={idx} className={`p-4 border rounded-lg ${isDonation ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}`}>
                     <div className="flex items-start gap-3">
@@ -239,19 +267,18 @@ export default function BlockchainPage() {
                             {isDonation ? "Donasi" : "Penyaluran"}
                           </Badge>
                           <span className="font-semibold text-sm text-foreground font-mono">
-                            {isDonation ? '+' : '-'}{weiToEth(BigInt(tx.amount))} ETH
+                            {isDonation ? '+' : '-'}{tx.amount} ETH
                           </span>
                         </div>
-                        <p className="text-sm text-foreground mt-1 truncate">{tx.campaign_title}</p>
                         <p className="text-xs text-muted-foreground mt-1">
-                          {formatDate(tx.timestamp)} • {isDonation ? 'From' : 'To'}: {(isDonation ? tx.from_address : tx.to_address)?.slice(0, 10)}...
+                          {formatDate(tx.timestamp)} • {isDonation ? 'From' : 'To'}: {(isDonation ? tx.from : tx.to)?.slice(0, 10)}...
                         </p>
-                        {tx.tx_hash && (
+                        {tx.txHash && (
                           <Button 
                             variant="outline" 
                             size="sm" 
                             className="mt-2 gap-1 h-7 text-xs bg-transparent"
-                            onClick={() => window.open(`https://sepolia.etherscan.io/tx/${tx.tx_hash}`, '_blank')}
+                            onClick={() => window.open(`https://sepolia.etherscan.io/tx/${tx.txHash}`, '_blank')}
                           >
                             <ExternalLink className="w-3 h-3" />
                             Lihat di Etherscan
@@ -262,6 +289,130 @@ export default function BlockchainPage() {
                   </div>
                 )
               })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Campaigns List with Actions */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle>All Campaigns ({campaigns.length})</CardTitle>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={loadData}
+            >
+              Refresh
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {campaigns.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-lg font-semibold text-foreground mb-2">
+                Belum Ada Campaign
+              </p>
+              <p className="text-sm text-muted-foreground mb-4">
+                Campaign akan muncul setelah dibuat via Remix atau aplikasi
+              </p>
+              <div className="space-y-2 text-xs text-muted-foreground">
+                <p>✅ Factory Address: {CONTRACTS.CAMPAIGN_FACTORY || 'Not configured'}</p>
+                <p>✅ Total Campaigns: {stats?.totalCampaigns || 0}</p>
+                <p className="text-yellow-600">⚠️ Pastikan factory address sudah benar di .env.local</p>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {campaigns.map((campaign) => (
+                <div
+                  key={campaign.id}
+                  className="p-4 border rounded-lg hover:bg-muted/30 transition-colors"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap mb-2">
+                        <h3 className="font-semibold text-foreground truncate">
+                          {campaign.title}
+                        </h3>
+                        <Badge variant={campaign.status === 'active' ? 'default' : 'secondary'}>
+                          {campaign.status}
+                        </Badge>
+                        {campaign.is_frozen && (
+                          <Badge variant="destructive">Frozen</Badge>
+                        )}
+                      </div>
+                      
+                      {campaign.contract_address && (
+                        <div className="space-y-1 text-xs">
+                          <div className="flex items-center gap-2">
+                            <span className="text-muted-foreground">Contract:</span>
+                            <code className="font-mono text-xs">
+                              {campaign.contract_address.slice(0, 10)}...{campaign.contract_address.slice(-8)}
+                            </code>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-5 w-5 p-0"
+                              onClick={() => window.open(`https://sepolia.etherscan.io/address/${campaign.contract_address}`, '_blank')}
+                            >
+                              <ExternalLink className="w-3 h-3" />
+                            </Button>
+                          </div>
+                          
+                          {campaign.blockchain?.summary && (
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-2 p-2 bg-muted/50 rounded">
+                              <div>
+                                <span className="text-muted-foreground">Collected:</span>
+                                <p className="font-semibold font-mono">
+                                  {weiToEth(campaign.blockchain.summary.collectedAmount)} ETH
+                                </p>
+                              </div>
+                              <div>
+                                <span className="text-muted-foreground">Balance:</span>
+                                <p className="font-semibold font-mono">
+                                  {weiToEth(campaign.blockchain.summary.balance)} ETH
+                                </p>
+                              </div>
+                              <div>
+                                <span className="text-muted-foreground">Donors:</span>
+                                <p className="font-semibold">
+                                  {campaign.blockchain.summary.donorCount}
+                                </p>
+                              </div>
+                              <div>
+                                <span className="text-muted-foreground">Blockchain:</span>
+                                <div className="flex gap-1">
+                                  <Badge variant={campaign.blockchain.summary.isActive ? "default" : "secondary"} className="text-xs">
+                                    {campaign.blockchain.summary.isActive ? 'Active' : 'Inactive'}
+                                  </Badge>
+                                  {campaign.blockchain.summary.isFrozen && (
+                                    <Badge variant="destructive" className="text-xs">Frozen</Badge>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      
+                      {!campaign.contract_address && (
+                        <p className="text-xs text-yellow-600">
+                          ⚠️ No contract address - Campaign not deployed to blockchain
+                        </p>
+                      )}
+                    </div>
+                    
+                    <div className="flex-shrink-0">
+                      <CampaignActions
+                        campaign={campaign}
+                        onSuccess={loadData}
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </CardContent>

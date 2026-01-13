@@ -1,4 +1,5 @@
 "use client"
+import { useState, useEffect } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Download } from "lucide-react"
@@ -6,19 +7,60 @@ import { TransparencyHero } from "@/components/transparansi/hero-section"
 import { TransparencyStatsBar } from "@/components/transparansi/stats-bar"
 import { DonationFeed } from "@/components/transparansi/donation-feed"
 import { DistributionGrid } from "@/components/transparansi/distribution-grid"
-import { mockTransactions } from "@/lib/mock-transparency-data"
 import { Footer } from "@/components/sections/footer"
+import { getAllTransactionsFromBlockchain } from "@/lib/admin-blockchain"
+import { getCampaigns } from "@/lib/api"
+import type { BlockchainTransaction, Campaign } from "@/lib/types"
+import { toast } from "sonner"
 
 export default function TransparencyPage() {
+  const [transactions, setTransactions] = useState<BlockchainTransaction[]>([])
+  const [campaigns, setCampaigns] = useState<Campaign[]>([])
+  const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    loadData()
+  }, [])
+
+  const loadData = async () => {
+    try {
+      const [txData, campaignsResponse] = await Promise.all([
+        getAllTransactionsFromBlockchain(),
+        getCampaigns({}, { limit: 1000 })
+      ])
+      setTransactions(txData)
+      setCampaigns(campaignsResponse.data)
+    } catch (error) {
+      console.error('Error loading data:', error)
+    }
+  }
+
+  const getCampaignByAddress = (contractAddress: string) => {
+    return campaigns.find(c => c.contract_address?.toLowerCase() === contractAddress.toLowerCase())
+  }
+
   const handleExportCSV = () => {
-    const headers = ["Waktu", "Nama Donatur", "Jumlah (Rp)", "Campaign", "Hash Transaksi"]
-    const rows = mockTransactions.map((tx) => [
-      tx.timestamp,
-      tx.isAnonymous ? "Anonim" : tx.donorName,
-      tx.amount.toString(),
-      tx.campaignName,
-      tx.txHash,
-    ])
+    if (transactions.length === 0) {
+      toast.error('Tidak ada data untuk diekspor')
+      return
+    }
+
+    const headers = ["Waktu", "Tipe", "Campaign", "Jumlah (ETH)", "From/To", "Hash Transaksi"]
+    const rows = transactions.map((tx) => {
+      const campaign = getCampaignByAddress(tx.contractAddress)
+      const type = tx.from ? 'Donasi' : 'Penyaluran'
+      const address = tx.from || tx.to || '-'
+      const timestamp = new Date(tx.timestamp * 1000).toLocaleString('id-ID')
+      
+      return [
+        timestamp,
+        type,
+        campaign?.title || '-',
+        tx.amount,
+        address,
+        tx.contractAddress,
+      ]
+    })
 
     const csvContent = [headers, ...rows].map((row) => row.map((cell) => `"${cell}"`).join(",")).join("\n")
 
@@ -33,6 +75,8 @@ export default function TransparencyPage() {
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
+    
+    toast.success('Data berhasil diekspor')
   }
 
   return (
