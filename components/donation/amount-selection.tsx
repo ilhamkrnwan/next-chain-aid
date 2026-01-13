@@ -8,20 +8,12 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
-import type { Campaign } from "@/lib/mock-campaigns"
 import Image from "next/image"
-import { ChevronLeft } from "lucide-react"
-
-const PRESET_AMOUNTS = [
-  { label: "Rp 50.000", value: 50000 },
-  { label: "Rp 100.000", value: 100000 },
-  { label: "Rp 250.000", value: 250000 },
-  { label: "Rp 500.000", value: 500000 },
-  { label: "Rp 1.000.000", value: 1000000 },
-]
+import { ChevronLeft, Wallet } from "lucide-react"
 
 interface AmountSelectionProps {
-  campaign: Campaign
+  campaign: any 
+  // Fungsi ini adalah "jembatan" ke DonationModal
   onSubmit: (data: { amount: number; isAnonymous: boolean; message: string }) => void
   onBack: () => void
 }
@@ -32,146 +24,138 @@ export function AmountSelection({ campaign, onSubmit, onBack }: AmountSelectionP
   const [isAnonymous, setIsAnonymous] = useState(false)
   const [message, setMessage] = useState("")
 
-  const finalAmount = selectedAmount || Number.parseInt(customAmount.replace(/\D/g, "") || "0")
+  // Menghitung angka final untuk dikirim ke parent
+  const finalAmount = selectedAmount || parseFloat(customAmount) || 0
 
   const handleSubmit = () => {
+    // Validasi input sebelum dikirim ke parent
     if (finalAmount <= 0) {
-      alert("Silakan pilih atau masukkan jumlah donasi")
+      alert("Silakan masukkan jumlah ETH yang valid")
       return
     }
 
+    // MEMANGGIL FUNGSI DARI PARENT (DonationModal)
+    // Data ini akan ditangkap oleh handleDonationSubmit di modal
     onSubmit({
       amount: finalAmount,
       isAnonymous,
-      message,
+      message: message.trim(),
     })
   }
 
-  const formatCustomAmount = (value: string) => {
-    const numValue = value.replace(/\D/g, "")
-    if (numValue === "") {
-      setCustomAmount("")
-      return
-    }
-    setCustomAmount(numValue)
+  const handleCustomInputChange = (value: string) => {
+    // Hanya izinkan angka dan satu titik desimal
+    const sanitized = value.replace(/[^0-9.]/g, '')
+    setCustomAmount(sanitized)
     setSelectedAmount(null)
+  }
+
+  const getOrganizationName = (org: any) => {
+    if (!org) return "Organisasi"
+    if (typeof org === "object") return org.name
+    return org
   }
 
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <button onClick={onBack} className="text-slate-600 hover:text-slate-900 p-2 -ml-2">
-          <ChevronLeft className="w-5 h-5" />
+      <div className="flex items-center justify-between p-2">
+        <button onClick={onBack} className="text-slate-600 hover:text-slate-900 transition-colors">
+          <ChevronLeft className="w-6 h-6" />
         </button>
-        <h1 className="text-2xl font-bold text-blue-950">Pilih Jumlah Donasi</h1>
-        <div className="w-5" />
+        <h1 className="text-lg font-bold text-blue-950">Detail Donasi</h1>
+        <div className="w-6" />
       </div>
 
-      {/* Campaign Summary Card */}
-      <Card className="p-4 bg-white space-y-3">
-        <div className="flex gap-3">
-          <div className="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0">
-            <Image
-              src={campaign.image || "/placeholder.svg"}
-              alt={campaign.title}
-              width={80}
-              height={80}
-              className="w-full h-full object-cover"
-            />
-          </div>
-          <div className="flex-1 min-w-0">
-            <Badge className="bg-blue-100 text-blue-800 border-0 mb-2 w-fit">{campaign.category}</Badge>
-            <h3 className="font-semibold text-slate-900 text-sm line-clamp-2">{campaign.title}</h3>
-            <p className="text-xs text-slate-600 mt-1">{campaign.organization}</p>
-          </div>
+      {/* Campaign Summary */}
+      <Card className="p-4 mx-2 bg-slate-50 border-none shadow-none flex gap-3 items-center">
+        <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
+          <Image
+            src={campaign.image_url || campaign.image || "/placeholder.svg"}
+            alt={campaign.title}
+            width={48}
+            height={48}
+            className="w-full h-full object-cover"
+          />
+        </div>
+        <div className="min-w-0">
+          <h3 className="font-bold text-slate-900 text-sm truncate">{campaign.title}</h3>
+          <p className="text-xs text-slate-500">{getOrganizationName(campaign.organization)}</p>
         </div>
       </Card>
 
-      {/* Amount Selection */}
-      <Card className="p-6 bg-white space-y-4">
-        <h2 className="font-semibold text-slate-900">Pilih Jumlah</h2>
-
-        <div className="grid grid-cols-2 gap-2">
-          {PRESET_AMOUNTS.map((preset) => (
-            <Button
-              key={preset.value}
-              onClick={() => {
-                setSelectedAmount(preset.value)
-                setCustomAmount("")
-              }}
-              variant={selectedAmount === preset.value ? "default" : "outline"}
-              className={`h-12 ${selectedAmount === preset.value ? "bg-blue-600 hover:bg-blue-700" : "border-slate-200"}`}
-            >
-              {preset.label}
-            </Button>
-          ))}
-        </div>
-
-        {/* Custom Amount */}
-        <div className="space-y-2">
-          <Label className="text-sm text-slate-600">Atau masukkan jumlah custom</Label>
+      <div className="px-4 space-y-6">
+        {/* Unit Selection */}
+        <div className="space-y-3">
+          <Label className="text-sm font-bold text-slate-700">Pilih Nominal ETH</Label>
+          <div className="grid grid-cols-2 gap-2">
+            {PRESET_AMOUNTS.map((preset) => (
+              <Button
+                key={preset.value}
+                onClick={() => {
+                  setSelectedAmount(preset.value)
+                  setCustomAmount("")
+                }}
+                variant={selectedAmount === preset.value ? "default" : "outline"}
+                className={`h-12 font-bold ${selectedAmount === preset.value ? "bg-blue-600" : "text-slate-600"}`}
+              >
+                {preset.label}
+              </Button>
+            ))}
+          </div>
+          
           <div className="relative">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600">Rp</span>
+            <Wallet className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <Input
               type="text"
-              placeholder="Masukkan jumlah..."
+              placeholder="Jumlah ETH lainnya..."
               value={customAmount}
-              onChange={(e) => formatCustomAmount(e.target.value)}
-              className="pl-10 h-11"
+              onChange={(e) => handleCustomInputChange(e.target.value)}
+              className="pl-10 h-12 font-mono"
             />
           </div>
         </div>
 
-        {/* Display Selected Amount */}
-        {finalAmount > 0 && (
-          <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-            <p className="text-sm text-slate-600">Jumlah donasi Anda</p>
-            <p className="text-2xl font-bold text-blue-600">Rp {finalAmount.toLocaleString("id-ID")}</p>
-          </div>
-        )}
-      </Card>
-
-      {/* Optional Donation Settings */}
-      <Card className="p-6 bg-white space-y-4">
+        {/* Message & Privacy */}
         <div className="space-y-4">
-          {/* Anonymous Checkbox */}
-          <div className="flex items-center gap-3">
-            <Checkbox
-              id="anonymous"
-              checked={isAnonymous}
-              onCheckedChange={(checked) => setIsAnonymous(checked as boolean)}
-            />
-            <Label htmlFor="anonymous" className="text-sm text-slate-700 cursor-pointer">
-              Sembunyikan nama saya (donasi anonim)
-            </Label>
-          </div>
-
-          {/* Message */}
           <div className="space-y-2">
-            <Label htmlFor="message" className="text-sm text-slate-700">
-              Pesan untuk kampanye (opsional)
-            </Label>
+            <Label className="text-sm font-bold text-slate-700">Pesan (On-chain)</Label>
             <Textarea
-              id="message"
-              placeholder="Tulis pesan dukungan Anda..."
+              placeholder="Tulis doa atau dukungan..."
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               className="resize-none"
-              rows={3}
             />
           </div>
-        </div>
-      </Card>
 
-      {/* CTA Button */}
-      <Button
-        onClick={handleSubmit}
-        disabled={finalAmount <= 0}
-        className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg"
-      >
-        Lanjut ke Pembayaran
-      </Button>
+          <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-lg">
+            <Checkbox
+              id="anon"
+              checked={isAnonymous}
+              onCheckedChange={(val) => setIsAnonymous(!!val)}
+            />
+            <Label htmlFor="anon" className="text-xs text-slate-600 cursor-pointer">
+              Sembunyikan alamat wallet saya di publik (Anonim)
+            </Label>
+          </div>
+        </div>
+
+        {/* Submit Button */}
+        <Button
+          onClick={handleSubmit}
+          disabled={finalAmount <= 0}
+          className="w-full h-14 bg-blue-600 hover:bg-blue-700 text-white font-black text-lg rounded-2xl shadow-xl shadow-blue-200"
+        >
+          Konfirmasi di MetaMask
+        </Button>
+      </div>
     </div>
   )
 }
+
+const PRESET_AMOUNTS = [
+  { label: "0.001 ETH", value: 0.001 },
+  { label: "0.01 ETH", value: 0.01 },
+  { label: "0.05 ETH", value: 0.05 },
+  { label: "0.1 ETH", value: 0.1 },
+]

@@ -2,7 +2,7 @@ import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import type { Campaign } from "@/lib/types"
 import { Users, Calendar, CheckCircle2 } from "lucide-react"
-import Link from "next/link"
+import { DonationModal } from "@/components/donation/donation-modal"
 
 interface DonationCardProps {
   campaign: Campaign & {
@@ -86,11 +86,7 @@ export function DonationCard({ campaign, percentage }: DonationCardProps) {
       </div>
 
       {/* CTA Button */}
-      <Link href={`/donate/${campaign.id}`}>
-        <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white h-12 font-semibold rounded-lg">
-          Donasi Sekarang
-        </Button>
-      </Link>
+      <DonationModal campaign={campaign} />
 
       {/* Organization Info */}
       <Card className="p-4 bg-slate-50 space-y-3">
