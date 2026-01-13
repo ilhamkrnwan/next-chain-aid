@@ -1,8 +1,9 @@
 "use client"
+
 import { useState, useEffect } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
-import { Download } from "lucide-react"
+import { Download, ShieldCheck, Activity, Send, Zap } from "lucide-react"
 import { TransparencyHero } from "@/components/transparansi/hero-section"
 import { TransparencyStatsBar } from "@/components/transparansi/stats-bar"
 import { DonationFeed } from "@/components/transparansi/donation-feed"
@@ -16,7 +17,6 @@ import { toast } from "sonner"
 export default function TransparencyPage() {
   const [transactions, setTransactions] = useState<BlockchainTransaction[]>([])
   const [campaigns, setCampaigns] = useState<Campaign[]>([])
-  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     loadData()
@@ -31,7 +31,7 @@ export default function TransparencyPage() {
       setTransactions(txData)
       setCampaigns(campaignsResponse.data)
     } catch (error) {
-      console.error('Error loading data:', error)
+      console.error('Gagal ambil data:', error)
     }
   }
 
@@ -41,82 +41,111 @@ export default function TransparencyPage() {
 
   const handleExportCSV = () => {
     if (transactions.length === 0) {
-      toast.error('Tidak ada data untuk diekspor')
+      toast.error('Datanya masih kosong, Bang!')
       return
     }
 
     const headers = ["Waktu", "Tipe", "Campaign", "Jumlah (ETH)", "From/To", "Hash Transaksi"]
     const rows = transactions.map((tx) => {
       const campaign = getCampaignByAddress(tx.contractAddress)
-      const type = tx.from ? 'Donasi' : 'Penyaluran'
+      const type = tx.from ? 'Donasi Masuk' : 'Dana Keluar'
       const address = tx.from || tx.to || '-'
       const timestamp = new Date(tx.timestamp * 1000).toLocaleString('id-ID')
       
-      return [
-        timestamp,
-        type,
-        campaign?.title || '-',
-        tx.amount,
-        address,
-        tx.contractAddress,
-      ]
+      return [timestamp, type, campaign?.title || '-', tx.amount, address, tx.contractAddress]
     })
 
     const csvContent = [headers, ...rows].map((row) => row.map((cell) => `"${cell}"`).join(",")).join("\n")
-
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
     const link = document.createElement("a")
     const url = URL.createObjectURL(blob)
 
     link.setAttribute("href", url)
-    link.setAttribute("download", `ChainAid-Transaksi-${new Date().toISOString().split("T")[0]}.csv`)
+    link.setAttribute("download", `ChainAid-Laporan-Audit-${new Date().toISOString().split("T")[0]}.csv`)
     link.style.visibility = "hidden"
-
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
     
-    toast.success('Data berhasil diekspor')
+    toast.success('Laporan Berhasil Didownload! Gaskeun!')
   }
 
   return (
-    <main className="min-h-screen bg-background">
+    <main className="min-h-screen bg-[#FAFAFA]">
       <TransparencyHero />
-      <TransparencyStatsBar />
+      
+      {/* Stats Bar nempel dikit ke Hero */}
+      <div className="max-w-7xl mx-auto px-4 -mt-10 relative z-20">
+        <TransparencyStatsBar />
+      </div>
 
-      <section className="py-12 sm:py-16 lg:py-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto space-y-8">
-          {/* Export Button */}
-          <div className="flex justify-end">
-            <Button onClick={handleExportCSV} className="gap-2 bg-blue-600 hover:bg-blue-700 text-white">
-              <Download className="w-4 h-4" />
-              Export Data (CSV)
+      <section className="py-16 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto space-y-12">
+          
+          {/* Header Dashboard */}
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b-8 border-slate-900 pb-8">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-blue-600">
+                <ShieldCheck className="w-6 h-6 stroke-[3px]" />
+                <span className="font-black uppercase tracking-[0.3em] text-[10px] text-slate-400">Data Terverifikasi Blockchain</span>
+              </div>
+              <h1 className="text-4xl md:text-6xl font-black text-slate-900 uppercase italic tracking-tighter leading-none">
+                Jejak Audit<span className="text-blue-600">.</span>
+              </h1>
+            </div>
+
+            <Button 
+              onClick={handleExportCSV} 
+              className="h-14 px-8 bg-yellow-400 hover:bg-yellow-500 text-slate-900 border-4 border-slate-900 rounded-2xl font-black uppercase italic tracking-widest text-xs shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all"
+            >
+              <Download className="w-5 h-5 mr-2 stroke-[3px]" />
+              Download Laporan (CSV)
             </Button>
           </div>
 
-          {/* Tabs */}
-          <Tabs defaultValue="donasi" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="donasi">Riwayat Donasi</TabsTrigger>
-              <TabsTrigger value="penyaluran">Riwayat Penyaluran</TabsTrigger>
+          {/* Sistem Tab Kontrol */}
+          <Tabs defaultValue="donasi" className="space-y-10">
+            <TabsList className="flex flex-wrap h-auto gap-4 bg-transparent p-0">
+              <TabsTrigger 
+                value="donasi" 
+                className="flex-1 md:flex-none px-8 py-4 border-4 border-slate-900 rounded-2xl font-black uppercase italic text-xs data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=inactive]:bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] data-[state=active]:shadow-none transition-all"
+              >
+                <Activity className="w-4 h-4 mr-2" />
+                Riwayat Donasi
+              </TabsTrigger>
+              <TabsTrigger 
+                value="penyaluran" 
+                className="flex-1 md:flex-none px-8 py-4 border-4 border-slate-900 rounded-2xl font-black uppercase italic text-xs data-[state=active]:bg-red-500 data-[state=active]:text-white data-[state=inactive]:bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] data-[state=active]:shadow-none transition-all"
+              >
+                <Send className="w-4 h-4 mr-2" />
+                Penyaluran Dana
+              </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="donasi" className="space-y-6">
-              <div className="space-y-2">
-                <h2 className="text-2xl sm:text-3xl font-bold text-blue-950">Riwayat Donasi Real-time</h2>
-                <p className="text-slate-600">Lihat semua donasi yang masuk dan verifikasi di blockchain Ethereum</p>
+            <TabsContent value="donasi" className="mt-0 animate-in fade-in slide-in-from-bottom-4 duration-500 outline-none">
+              <div className="space-y-8">
+                <div className="p-8 bg-blue-50 border-4 border-slate-900 rounded-[2.5rem] space-y-3 relative overflow-hidden">
+                  <Zap className="absolute right-[-20px] top-[-20px] w-32 h-32 text-blue-100 rotate-12" />
+                  <h2 className="text-3xl font-black text-slate-900 uppercase italic tracking-tighter relative z-10">Donasi Real-time</h2>
+                  <p className="font-bold text-slate-600 uppercase text-[10px] tracking-wider relative z-10 max-w-2xl">
+                    Semua transaksi masuk yang tercatat secara permanen. Transparan, jujur, dan tidak bisa dimanipulasi oleh siapa pun.
+                  </p>
+                </div>
+                <DonationFeed />
               </div>
-              <DonationFeed />
             </TabsContent>
 
-            <TabsContent value="penyaluran" className="space-y-6">
-              <div className="space-y-2">
-                <h2 className="text-2xl sm:text-3xl font-bold text-blue-950">Riwayat Penyaluran Dana</h2>
-                <p className="text-slate-600">
-                  Transparansi penuh tentang bagaimana dana donasi disalurkan dan dampaknya
-                </p>
+            <TabsContent value="penyaluran" className="mt-0 animate-in fade-in slide-in-from-bottom-4 duration-500 outline-none">
+              <div className="space-y-8">
+                <div className="p-8 bg-red-50 border-4 border-slate-900 rounded-[2.5rem] space-y-3 relative overflow-hidden">
+                  <Send className="absolute right-[-20px] top-[-20px] w-32 h-32 text-red-100 -rotate-12" />
+                  <h2 className="text-3xl font-black text-slate-900 uppercase italic tracking-tighter relative z-10">Alur Distribusi</h2>
+                  <p className="font-bold text-slate-600 uppercase text-[10px] tracking-wider relative z-10 max-w-2xl">
+                    Lacak ke mana setiap ETH disalurkan. Kami memastikan dana sampai ke tangan yang tepat dengan bukti on-chain.
+                  </p>
+                </div>
+                <DistributionGrid />
               </div>
-              <DistributionGrid />
             </TabsContent>
           </Tabs>
         </div>

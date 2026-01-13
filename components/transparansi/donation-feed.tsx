@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { ExternalLink, MessageCircle } from "lucide-react"
+import { ExternalLink, MessageCircle, Search, Wallet, ArrowRight } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -28,12 +28,11 @@ export function DonationFeed() {
         getCampaigns({}, { limit: 1000 })
       ])
       
-      // Filter only donations
       const donations = txData.filter(tx => tx.from)
       setTransactions(donations)
       setCampaigns(campaignsResponse.data)
     } catch (error) {
-      console.error('Error loading donations:', error)
+      console.error('Gagal memuat data donasi:', error)
     } finally {
       setLoading(false)
     }
@@ -60,12 +59,12 @@ export function DonationFeed() {
 
   if (loading) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-6">
         {[1, 2, 3].map(i => (
-          <div key={i} className="bg-white border border-slate-200 rounded-lg p-6">
-            <Skeleton className="h-6 w-32 mb-2" />
-            <Skeleton className="h-4 w-48 mb-4" />
-            <Skeleton className="h-20 w-full" />
+          <div key={i} className="border-4 border-slate-100 rounded-[2rem] p-6 space-y-4">
+            <Skeleton className="h-6 w-1/4 bg-slate-100" />
+            <Skeleton className="h-20 w-full bg-slate-50" />
+            <Skeleton className="h-6 w-1/2 bg-slate-100" />
           </div>
         ))}
       </div>
@@ -73,23 +72,27 @@ export function DonationFeed() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Filters */}
-      <div className="space-y-4">
-        <Input
-          placeholder="Cari berdasarkan campaign..."
-          value={searchCampaign}
-          onChange={(e) => setSearchCampaign(e.target.value)}
-          className="bg-white border-slate-200"
-        />
+    <div className="space-y-8">
+      {/* Pencarian dengan Gaya Brutalist */}
+      <div className="relative group">
+        <div className="absolute inset-0 bg-slate-900 rounded-2xl translate-x-1 translate-y-1 group-focus-within:translate-x-1.5 group-focus-within:translate-y-1.5 transition-all" />
+        <div className="relative flex items-center bg-white border-4 border-slate-900 rounded-2xl px-4 h-16">
+          <Search className="w-6 h-6 text-slate-400 mr-3" />
+          <Input
+            placeholder="Cari Kampanye Terverifikasi..."
+            value={searchCampaign}
+            onChange={(e) => setSearchCampaign(e.target.value)}
+            className="border-none bg-transparent focus-visible:ring-0 text-lg font-bold uppercase italic placeholder:text-slate-300"
+          />
+        </div>
       </div>
 
       {/* Transaction Feed */}
-      <div className="space-y-4">
+      <div className="space-y-6">
         {filteredTransactions.length === 0 ? (
-          <div className="text-center py-12 bg-white border border-slate-200 rounded-lg">
-            <p className="text-slate-600">
-              {searchCampaign ? 'Tidak ada transaksi yang sesuai dengan pencarian Anda' : 'Belum ada donasi'}
+          <div className="text-center py-20 bg-slate-50 border-4 border-dashed border-slate-200 rounded-[3rem]">
+            <p className="text-slate-400 font-black uppercase italic tracking-widest">
+              {searchCampaign ? 'Data Tidak Ditemukan' : 'Belum Ada Transaksi Tercatat'}
             </p>
           </div>
         ) : (
@@ -97,63 +100,78 @@ export function DonationFeed() {
             const campaign = getCampaignByAddress(tx.contractAddress)
             
             return (
-              <div
-                key={idx}
-                className="bg-white border border-slate-200 rounded-lg p-5 sm:p-6 hover:shadow-md transition-shadow"
-              >
-                <div className="space-y-4">
-                  {/* Header */}
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      <div>
-                        <p className="font-semibold text-slate-900">
-                          <Badge variant="outline" className="bg-slate-50">
-                            {tx.from?.slice(0, 6)}...{tx.from?.slice(-4)}
-                          </Badge>
-                        </p>
-                        <p className="text-sm text-slate-500">{formatDate(tx.timestamp)}</p>
-                      </div>
-                    </div>
-                    <p className="text-2xl font-bold text-blue-600">{tx.amount} ETH</p>
-                  </div>
-
-                  {/* Campaign and Message */}
-                  <div className="space-y-3 border-t border-b border-slate-200 py-4">
-                    {campaign ? (
-                      <Link href={`/campaigns/${campaign.id}`}>
-                        <p className="text-blue-600 hover:text-blue-700 font-medium">
-                          {campaign.title}
-                        </p>
-                      </Link>
-                    ) : (
-                      <p className="text-slate-600">Campaign tidak ditemukan</p>
-                    )}
-
-                    {tx.message && (
-                      <div className="bg-slate-50 border-l-4 border-blue-600 pl-4 py-3">
-                        <div className="flex items-start gap-2">
-                          <MessageCircle className="w-4 h-4 text-slate-600 mt-0.5 flex-shrink-0" />
-                          <p className="text-slate-700 italic">{tx.message}</p>
+              <div key={idx} className="group relative">
+                {/* Efek Bayangan Solid */}
+                <div className="absolute inset-0 bg-slate-900 rounded-[2rem] translate-x-1.5 translate-y-1.5 group-hover:translate-x-2 group-hover:translate-y-2 transition-all" />
+                
+                <div className="relative bg-white border-4 border-slate-900 rounded-[2rem] overflow-hidden p-6 sm:p-8">
+                  <div className="space-y-6">
+                    {/* Baris Atas: Pengirim & Nominal */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b-4 border-dashed border-slate-100 pb-6">
+                      <div className="flex items-center gap-4">
+                        <div className="bg-slate-900 p-3 rounded-2xl">
+                          <Wallet className="w-6 h-6 text-blue-400" />
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Pengirim Donasi</p>
+                          <p className="font-mono text-sm font-bold text-slate-900 bg-slate-100 px-2 py-1 rounded">
+                            {tx.from?.slice(0, 8)}...{tx.from?.slice(-6)}
+                          </p>
                         </div>
                       </div>
-                    )}
-                  </div>
+                      <div className="text-left sm:text-right">
+                        <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest leading-none mb-1">Nilai Transaksi</p>
+                        <p className="text-3xl font-black text-blue-600 italic tracking-tighter leading-none">
+                          {tx.amount} ETH
+                        </p>
+                      </div>
+                    </div>
 
-                  {/* Blockchain Link */}
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm text-slate-600">Hash: </p>
-                    <code className="text-xs font-mono bg-slate-50 border border-slate-200 rounded px-2 py-1 text-slate-700">
-                      {tx.contractAddress.substring(0, 12)}...{tx.contractAddress.substring(tx.contractAddress.length - 8)}
-                    </code>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="gap-1 text-blue-600 hover:text-blue-700 h-8"
-                      onClick={() => window.open(`https://sepolia.etherscan.io/address/${tx.contractAddress}`, "_blank")}
-                    >
-                      <ExternalLink className="w-4 h-4" />
-                      Verifikasi
-                    </Button>
+                    {/* Tengah: Informasi Kampanye & Pesan */}
+                    <div className="space-y-4">
+                      {campaign ? (
+                        <Link href={`/campaigns/${campaign.id}`} className="group/link flex items-center gap-2 w-fit">
+                          <h4 className="text-xl font-black text-slate-900 uppercase italic leading-tight group-hover:text-blue-600 transition-colors">
+                            {campaign.title}
+                          </h4>
+                          <ArrowRight className="w-5 h-5 text-slate-300 group-hover/link:translate-x-1 transition-transform" />
+                        </Link>
+                      ) : (
+                        <p className="text-slate-400 font-bold uppercase italic">Kampanye Tidak Terdeteksi</p>
+                      )}
+
+                      {tx.message && (
+                        <div className="relative">
+                          <div className="absolute inset-0 bg-blue-600 rounded-2xl translate-x-1 translate-y-1" />
+                          <div className="relative bg-white border-2 border-slate-900 p-4 rounded-2xl flex items-start gap-3">
+                            <MessageCircle className="w-5 h-5 text-blue-600 mt-1 flex-shrink-0" />
+                            <p className="text-sm font-bold text-slate-700 italic">"{tx.message}"</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Baris Bawah: Footer Meta Data */}
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-2">
+                      <div className="flex flex-col">
+                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Waktu Blok</span>
+                        <span className="text-xs font-bold text-slate-900 uppercase italic">{formatDate(tx.timestamp)}</span>
+                      </div>
+                      
+                      <Button
+                        size="sm"
+                        className="bg-slate-100 hover:bg-slate-900 text-slate-900 hover:text-white border-2 border-slate-900 rounded-xl font-black uppercase italic text-[10px] tracking-widest transition-all h-10 px-6 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:shadow-none"
+                        onClick={() => window.open(`https://sepolia.etherscan.io/address/${tx.contractAddress}`, "_blank")}
+                      >
+                        <ExternalLink className="w-3.5 h-3.5 mr-2" />
+                        Verifikasi On-Chain
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  {/* Indikator Status di Pojok */}
+                  <div className="absolute top-0 right-0 bg-green-400 border-l-4 border-b-4 border-slate-900 px-4 py-1 font-black text-[9px] uppercase italic tracking-tighter">
+                    Success
                   </div>
                 </div>
               </div>

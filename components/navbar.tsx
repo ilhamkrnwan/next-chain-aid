@@ -5,7 +5,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { ConnectButton } from "@rainbow-me/rainbowkit"
 import { Button } from "@/components/ui/button"
-import { ShieldCheck, User, LogOut, History, LayoutDashboard, Menu, X } from "lucide-react"
+import { ShieldCheck, User, LogOut, History, LayoutDashboard, Menu, X, Zap } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import type { User as SupabaseUser } from "@supabase/supabase-js"
 import {
@@ -28,28 +28,16 @@ export function Navbar() {
 
   useEffect(() => {
     const supabase = createClient()
-
-    // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null)
-      if (session?.user) {
-        fetchProfile(session.user.id)
-      } else {
-        setLoading(false)
-      }
+      if (session?.user) fetchProfile(session.user.id)
+      else setLoading(false)
     })
 
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null)
-      if (session?.user) {
-        fetchProfile(session.user.id)
-      } else {
-        setProfile(null)
-        setLoading(false)
-      }
+      if (session?.user) fetchProfile(session.user.id)
+      else { setProfile(null); setLoading(false); }
     })
 
     return () => subscription.unsubscribe()
@@ -73,51 +61,42 @@ export function Navbar() {
   const getDashboardLink = () => {
     if (profile?.role === "admin") return "/admin"
     if (profile?.role === "org") return "/org"
-    return "/profile" // User biasa ke profile, bukan dashboard
-  }
-
-  const getDashboardLabel = () => {
-    if (profile?.role === "admin") return "Dashboard Admin"
-    if (profile?.role === "org") return "Dashboard Organisasi"
-    return "Profil Saya" // User biasa
+    return "/profile"
   }
 
   const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2)
+    return name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
   }
 
+  // NAV LINKS SINKRON DENGAN FOOTER
   const navLinks = [
-    { href: "/campaigns", label: "Donasi" },
-    { href: "/transparansi", label: "Transparansi" },
-    { href: "/about", label: "Tentang Kami" },
+    { href: "/", label: "BERANDA" },
+    { href: "/campaigns", label: "DONASI" },
+    { href: "/transparansi", label: "TRANSPARANSI" },
+    { href: "/about", label: "TENTANG" }, 
   ]
 
   return (
-    <nav className="border-b border-slate-200/50 bg-white/80 backdrop-blur-xl supports-[backdrop-filter]:bg-white/80 sticky top-0 z-50 shadow-sm">
-      <div className="container flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8 mx-auto max-w-7xl">
-        {/* Logo */}
-        <div className="flex items-center gap-2">
-          <Link href="/" className="flex items-center gap-2 font-bold text-xl group">
-            <div className="relative">
-              <ShieldCheck className="h-6 w-6 text-blue-600 group-hover:text-blue-700 transition-colors" />
-              <div className="absolute inset-0 bg-blue-400/20 rounded-full blur-md group-hover:blur-lg transition-all" />
-            </div>
-            <span className="bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">ChainAid</span>
-          </Link>
-        </div>
+    <nav className="sticky top-0 z-[100] bg-white border-b-4 border-slate-900">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+        
+        {/* LOGO NEO-BRUTAL */}
+        <Link href="/" className="flex items-center gap-2 group">
+          <div className="bg-blue-600 p-2 border-2 border-slate-900 rounded-lg shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] group-hover:shadow-none group-hover:translate-x-[2px] group-hover:translate-y-[2px] transition-all">
+            <ShieldCheck className="h-6 w-6 text-white" />
+          </div>
+          <span className="text-2xl font-black italic tracking-tighter text-slate-900 uppercase">
+            Chain<span className="text-blue-600">Aid</span>
+          </span>
+        </Link>
 
-        {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-600">
+        {/* DESKTOP NAV LINKS */}
+        <div className="hidden md:flex items-center gap-6">
           {navLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className="hover:text-blue-600 transition-colors relative group"
+              className="text-[11px] font-black tracking-widest text-slate-500 hover:text-blue-600 uppercase transition-colors relative group"
             >
               {link.label}
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 group-hover:w-full transition-all duration-300" />
@@ -125,206 +104,114 @@ export function Navbar() {
           ))}
         </div>
 
-        {/* Desktop Actions */}
-        <div className="hidden md:flex items-center gap-3">
-          <ConnectButton
-            chainStatus="icon"
-            showBalance={false}
-            accountStatus={{
-              smallScreen: "avatar",
-              largeScreen: "full",
-            }}
-          />
+        {/* ACTIONS */}
+        <div className="hidden md:flex items-center gap-4">
+          <div className="scale-90 border-2 border-slate-900 rounded-xl overflow-hidden shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all bg-white">
+            <ConnectButton chainStatus="none" showBalance={false} />
+          </div>
 
           {loading ? (
-            <div className="w-10 h-10 rounded-full bg-slate-200 animate-pulse" />
+            <div className="w-10 h-10 rounded-full bg-slate-200 animate-pulse border-2 border-slate-900" />
           ) : user && profile ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-                  <Avatar className="h-10 w-10">
-                    <AvatarImage src={profile.avatar_url || ""} alt={profile.full_name || "User"} />
-                    <AvatarFallback className="bg-blue-600 text-white">
+                {/* BUTTON AVATAR BULAT */}
+                <button className="relative h-12 w-12 rounded-full border-4 border-slate-900 overflow-hidden shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all focus:outline-none">
+                  <Avatar className="h-full w-full">
+                    <AvatarImage src={profile.avatar_url || ""} className="object-cover" />
+                    <AvatarFallback className="bg-blue-600 text-white font-black text-xs">
                       {getInitials(profile.full_name || user.email || "U")}
                     </AvatarFallback>
                   </Avatar>
-                </Button>
+                </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="end" forceMount>
-                <DropdownMenuLabel className="font-normal">
-                  <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">{profile.full_name || "User"}</p>
-                    <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
-                    {profile.role && (
-                      <p className="text-xs leading-none text-blue-600 font-medium capitalize mt-1">
-                        {profile.role === "org" ? "Organisasi" : profile.role}
-                      </p>
-                    )}
+              <DropdownMenuContent className="w-64 mt-4 border-4 border-slate-900 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] rounded-2xl p-2 bg-white" align="end">
+                <DropdownMenuLabel className="p-4 bg-slate-50 rounded-xl mb-2 border-2 border-slate-100">
+                  <p className="text-sm font-black text-slate-900 uppercase tracking-tighter truncate">{profile.full_name || "Pengguna"}</p>
+                  <p className="text-[10px] font-bold text-slate-500 truncate">{user.email}</p>
+                  <div className="mt-2 inline-block px-2 py-0.5 bg-blue-600 text-[9px] font-black text-white uppercase rounded-md shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                    {profile.role === "org" ? "ORGANISASI" : profile.role || "DONATUR"}
                   </div>
                 </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href={getDashboardLink()} className="cursor-pointer">
-                    {profile?.role === "user" ? (
-                      <User className="mr-2 h-4 w-4" />
-                    ) : (
-                      <LayoutDashboard className="mr-2 h-4 w-4" />
-                    )}
-                    <span>{getDashboardLabel()}</span>
+                <DropdownMenuSeparator className="bg-slate-900 h-0.5 my-1" />
+                <DropdownMenuItem asChild className="p-3 focus:bg-blue-50 cursor-pointer font-bold uppercase text-[10px] rounded-lg">
+                  <Link href={getDashboardLink()} className="flex items-center">
+                    <LayoutDashboard className="mr-3 h-4 w-4 text-blue-600" /> PANEL KENDALI
                   </Link>
                 </DropdownMenuItem>
-                {(profile?.role === "admin" || profile?.role === "org") && (
-                  <DropdownMenuItem asChild>
-                    <Link href="/profile" className="cursor-pointer">
-                      <User className="mr-2 h-4 w-4" />
-                      <span>Profil</span>
-                    </Link>
-                  </DropdownMenuItem>
-                )}
-                <DropdownMenuItem asChild>
-                  <Link href="/history" className="cursor-pointer">
-                    <History className="mr-2 h-4 w-4" />
-                    <span>Riwayat Donasi</span>
+                <DropdownMenuItem asChild className="p-3 focus:bg-blue-50 cursor-pointer font-bold uppercase text-[10px] rounded-lg">
+                  <Link href="/history" className="flex items-center">
+                    <History className="mr-3 h-4 w-4 text-blue-600" /> RIWAYAT TRANSAKSI
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-600">
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Logout</span>
+                <DropdownMenuSeparator className="bg-slate-900 h-0.5 my-1" />
+                <DropdownMenuItem onClick={handleLogout} className="p-3 focus:bg-red-50 cursor-pointer font-bold uppercase text-[10px] text-red-600 rounded-lg">
+                  <LogOut className="mr-3 h-4 w-4" /> KELUAR AKUN
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <div className="flex items-center gap-2">
-              <Button variant="ghost" asChild className="hover:bg-blue-50 hover:text-blue-700">
-                <Link href="/login">Masuk</Link>
-              </Button>
-              <Button asChild className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-md hover:shadow-lg transition-all duration-300">
-                <Link href="/register">Daftar</Link>
-              </Button>
+            <div className="flex items-center gap-3">
+              <Link href="/login">
+                <Button variant="ghost" className="font-black uppercase italic tracking-widest text-[10px] hover:bg-slate-100 h-10">
+                  MASUK
+                </Button>
+              </Link>
+              <Link href="/register">
+                <Button className="bg-yellow-400 text-slate-900 border-2 border-slate-900 font-black uppercase italic tracking-widest text-[10px] px-6 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all rounded-xl h-10">
+                  DAFTAR
+                </Button>
+              </Link>
             </div>
           )}
         </div>
 
-        {/* Mobile Menu Button */}
-        <div className="flex md:hidden items-center gap-2">
-          <Button
+        {/* MOBILE MENU BUTTON */}
+        <div className="md:hidden flex items-center gap-2">
+           <Button
             variant="ghost"
             size="icon"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="h-10 w-10"
+            className="border-2 border-slate-900 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] bg-white active:shadow-none transition-all"
           >
-            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </Button>
         </div>
       </div>
 
-      {/* Mobile Menu */}
-      <div
-        className={cn(
-          "md:hidden fixed inset-x-0 top-16 bg-white border-b border-slate-200 shadow-lg transition-all duration-300 ease-in-out overflow-hidden",
-          mobileMenuOpen ? "max-h-screen opacity-100" : "max-h-0 opacity-0"
-        )}
-      >
-        <div className="container mx-auto px-4 py-4 space-y-4">
-          {/* Mobile Navigation Links */}
-          <div className="flex flex-col space-y-2">
+      {/* MOBILE DRAWER */}
+      {mobileMenuOpen && (
+        <div className="md:hidden bg-white border-t-4 border-slate-900 p-6 space-y-6 animate-in slide-in-from-top duration-300">
+          <div className="flex flex-col gap-4">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
                 onClick={() => setMobileMenuOpen(false)}
-                className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                className="text-xl font-black uppercase italic tracking-tighter text-slate-900 border-b-2 border-slate-100 pb-2 flex items-center justify-between group"
               >
                 {link.label}
+                <Zap className="w-4 h-4 text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity" />
               </Link>
             ))}
           </div>
-
-          {/* Mobile User Section */}
-          {loading ? (
-            <div className="px-4 py-2">
-              <div className="w-full h-10 rounded-lg bg-slate-200 animate-pulse" />
-            </div>
-          ) : user && profile ? (
-            <div className="border-t border-slate-200 pt-4 space-y-2">
-              <div className="px-4 py-2">
-                <p className="text-sm font-medium">{profile.full_name || "User"}</p>
-                <p className="text-xs text-muted-foreground">{user.email}</p>
-                {profile.role && (
-                  <p className="text-xs text-blue-600 font-medium capitalize mt-1">
-                    {profile.role === "org" ? "Organisasi" : profile.role}
-                  </p>
-                )}
-              </div>
-              <Link
-                href={getDashboardLink()}
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center px-4 py-2 text-sm font-medium text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-              >
-                {profile?.role === "user" ? (
-                  <User className="mr-2 h-4 w-4" />
-                ) : (
-                  <LayoutDashboard className="mr-2 h-4 w-4" />
-                )}
-                <span>{getDashboardLabel()}</span>
-              </Link>
-              {(profile?.role === "admin" || profile?.role === "org") && (
-                <Link
-                  href="/profile"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center px-4 py-2 text-sm font-medium text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                >
-                  <User className="mr-2 h-4 w-4" />
-                  <span>Profil</span>
-                </Link>
-              )}
-              <Link
-                href="/history"
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center px-4 py-2 text-sm font-medium text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-              >
-                <History className="mr-2 h-4 w-4" />
-                <span>Riwayat Donasi</span>
-              </Link>
-              <button
-                onClick={handleLogout}
-                className="w-full flex items-center px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-              >
-                <LogOut className="mr-2 h-4 w-4" />
-                <span>Logout</span>
-              </button>
-            </div>
-          ) : (
-            <div className="border-t border-slate-200 pt-4 space-y-2">
-              <Button
-                variant="ghost"
-                asChild
-                className="w-full justify-start hover:bg-blue-50 hover:text-blue-700"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                <Link href="/login">Masuk</Link>
-              </Button>
-              <Button
-                asChild
-                className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                <Link href="/register">Daftar</Link>
-              </Button>
-            </div>
-          )}
-
-          {/* Mobile Wallet Connect */}
-          <div className="border-t border-slate-200 pt-4">
-            <ConnectButton
-              chainStatus="icon"
-              showBalance={false}
-              accountStatus="avatar"
-            />
+          <div className="pt-4 border-t-2 border-dashed border-slate-200 space-y-4">
+             <div className="flex justify-center border-2 border-slate-900 rounded-xl overflow-hidden p-2 bg-slate-50">
+                <ConnectButton />
+             </div>
+             {!user && (
+               <div className="grid grid-cols-2 gap-4 pt-2">
+                  <Link href="/login" className="w-full">
+                    <Button className="w-full bg-white border-2 border-slate-900 text-slate-900 font-black italic text-xs shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">MASUK</Button>
+                  </Link>
+                  <Link href="/register" className="w-full">
+                    <Button className="w-full bg-blue-600 border-2 border-slate-900 text-white font-black italic text-xs shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">DAFTAR</Button>
+                  </Link>
+               </div>
+             )}
           </div>
         </div>
-      </div>
+      )}
     </nav>
   )
 }

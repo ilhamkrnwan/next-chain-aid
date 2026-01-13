@@ -4,14 +4,26 @@ import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { X } from "lucide-react"
+import { X, SlidersHorizontal, Trash2, Zap } from "lucide-react"
 
-const categories = ["Disaster", "Pendidikan", "Kesehatan", "Lingkungan", "Sosial"]
-const statuses = ["Aktif", "Selesai"]
+const categories = [
+  { value: "bencana_alam", label: "Bencana Alam" },
+  { value: "pendidikan", label: "Pendidikan" },
+  { value: "kesehatan", label: "Kesehatan" },
+  { value: "lingkungan", label: "Lingkungan" },
+  { value: "sosial", label: "Sosial" },
+  { value: "ekonomi", label: "Ekonomi" },
+]
+
+const statuses = [
+  { value: "active", label: "Aktif" },
+  { value: "completed", label: "Selesai" }
+]
+
 const sortOptions = [
-  { value: "terbaru", label: "Terbaru" },
-  { value: "populer", label: "Paling Populer" },
-  { value: "deadline", label: "Deadline Terdekat" },
+  { value: "terbaru", label: "TERBARU" },
+  { value: "populer", label: "PALING POPULER" },
+  { value: "deadline", label: "DEADLINE TERDEKAT" },
 ]
 
 interface FilterSidebarProps {
@@ -43,16 +55,24 @@ export function FilterSidebar({
 
   const content = (
     <div className="space-y-6">
-      {/* Sort */}
-      <div>
-        <h3 className="text-sm font-semibold text-slate-900 mb-3">Urutkan</h3>
+      {/* HEADER SECTION - Padding dikurangin */}
+      <div className="flex items-center gap-2 pb-3 border-b-2 border-dashed border-slate-200">
+        <div className="bg-blue-600 p-1.5 rounded-lg border-2 border-slate-900 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex-shrink-0">
+          <SlidersHorizontal className="w-4 h-4 text-white" />
+        </div>
+        <h3 className="font-black uppercase italic tracking-tighter text-slate-900 text-base">Filter</h3>
+      </div>
+
+      {/* SORT SECTION */}
+      <div className="space-y-2">
+        <label className="text-[9px] font-black uppercase tracking-widest text-slate-400">Urutkan</label>
         <Select value={sortBy} onValueChange={onSortChange}>
-          <SelectTrigger className="bg-white border-slate-200">
+          <SelectTrigger className="w-full bg-white border-2 border-slate-900 rounded-xl h-10 px-3 text-xs font-bold uppercase italic shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus:ring-0">
             <SelectValue />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="border-2 border-slate-900 rounded-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] bg-white">
             {sortOptions.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
+              <SelectItem key={option.value} value={option.value} className="font-bold uppercase italic text-[10px] py-2 focus:bg-blue-50">
                 {option.label}
               </SelectItem>
             ))}
@@ -60,52 +80,62 @@ export function FilterSidebar({
         </Select>
       </div>
 
-      {/* Kategori */}
-      <div>
-        <h3 className="text-sm font-semibold text-slate-900 mb-3">Kategori</h3>
-        <div className="space-y-2">
-          {categories.map((category) => (
-            <div key={category} className="flex items-center gap-2">
+      {/* KATEGORI SECTION - Menggunakan Grid 1 kolom tapi padding dipersempit */}
+      <div className="space-y-2">
+        <label className="text-[9px] font-black uppercase tracking-widest text-slate-400">Kategori</label>
+        <div className="grid grid-cols-1 gap-2">
+          {categories.map((cat) => (
+            <div 
+              key={cat.value} 
+              className={`flex items-center gap-2 p-2 border-2 rounded-lg cursor-pointer transition-all ${
+                selectedCategory === cat.value 
+                ? "bg-blue-50 border-blue-600 shadow-[2px_2px_0px_0px_rgba(37,99,235,1)]" 
+                : "bg-white border-slate-200 hover:border-slate-900 shadow-[1px_1px_0px_0px_rgba(0,0,0,0.05)]"
+              }`}
+              onClick={() => onCategoryChange(selectedCategory === cat.value ? null : cat.value)}
+            >
               <Checkbox
-                id={`category-${category}`}
-                checked={selectedCategory === category}
-                onCheckedChange={(checked) => {
-                  onCategoryChange(checked ? category : null)
-                }}
+                id={`category-${cat.value}`}
+                checked={selectedCategory === cat.value}
+                className="w-4 h-4 border-2 border-slate-900 rounded transition-none flex-shrink-0"
               />
-              <label htmlFor={`category-${category}`} className="text-sm text-slate-700 cursor-pointer">
-                {category}
+              <label htmlFor={`category-${cat.value}`} className="text-[11px] font-black uppercase italic tracking-tight cursor-pointer leading-none truncate">
+                {cat.label}
               </label>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Status */}
-      <div>
-        <h3 className="text-sm font-semibold text-slate-900 mb-3">Status</h3>
-        <div className="space-y-2">
+      {/* STATUS SECTION - Menggunakan flex-wrap agar tidak keluar jalur */}
+      <div className="space-y-2">
+        <label className="text-[9px] font-black uppercase tracking-widest text-slate-400">Status</label>
+        <div className="flex flex-wrap gap-2">
           {statuses.map((status) => (
-            <div key={status} className="flex items-center gap-2">
-              <Checkbox
-                id={`status-${status}`}
-                checked={selectedStatus === status}
-                onCheckedChange={(checked) => {
-                  onStatusChange(checked ? status : null)
-                }}
-              />
-              <label htmlFor={`status-${status}`} className="text-sm text-slate-700 cursor-pointer">
-                {status}
-              </label>
-            </div>
+            <button
+              key={status.value}
+              onClick={() => onStatusChange(selectedStatus === status.value ? null : status.value)}
+              className={`px-3 py-1.5 border-2 border-slate-900 rounded-lg font-black uppercase italic text-[9px] transition-all flex-1 min-w-[80px] ${
+                selectedStatus === status.value 
+                ? "bg-yellow-400 translate-x-0.5 translate-y-0.5 shadow-none" 
+                : "bg-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none"
+              }`}
+            >
+              {status.label}
+            </button>
           ))}
         </div>
       </div>
 
-      {/* Reset Button */}
+      {/* RESET BUTTON */}
       {(selectedCategory || selectedStatus || sortBy !== "terbaru") && (
-        <Button variant="outline" className="w-full bg-transparent" onClick={handleReset}>
-          Reset Filter
+        <Button 
+          variant="outline" 
+          className="w-full h-10 mt-4 border-2 border-slate-900 bg-red-50 hover:bg-red-100 text-red-600 font-black uppercase italic tracking-widest text-[10px] shadow-[2px_2px_0px_0px_rgba(220,38,38,0.2)]"
+          onClick={handleReset}
+        >
+          <Trash2 className="w-3 h-3 mr-2" />
+          Reset
         </Button>
       )}
     </div>
@@ -113,24 +143,32 @@ export function FilterSidebar({
 
   return (
     <>
-      {/* Desktop */}
-      <div className="hidden lg:block">
-        <Card className="p-6 sticky top-24">{content}</Card>
+      {/* DESKTOP */}
+      <div className="hidden lg:block w-full max-w-[280px]">
+        <div className="sticky top-24 p-5 bg-white border-4 border-slate-900 rounded-[1.5rem] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+          {content}
+        </div>
       </div>
 
-      {/* Mobile */}
+      {/* MOBILE */}
       <div className="lg:hidden">
         {isOpen && (
-          <div className="fixed inset-0 bg-black/50 z-40" onClick={() => onToggle?.(false)}>
-            <Card className="fixed left-0 top-0 w-full max-w-sm h-full overflow-y-auto rounded-none p-6 z-50">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-bold text-slate-900">Filter</h2>
-                <button onClick={() => onToggle?.(false)}>
-                  <X className="w-5 h-5" />
+          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60]" onClick={() => onToggle?.(false)}>
+            <div 
+              className="fixed left-0 top-0 w-[260px] h-full bg-white border-r-4 border-slate-900 p-6 z-[70] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-8">
+                <h2 className="text-xl font-black uppercase italic tracking-tighter text-slate-900">FILTER</h2>
+                <button 
+                  onClick={() => onToggle?.(false)}
+                  className="p-1.5 border-2 border-slate-900 rounded-lg bg-red-500 text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+                >
+                  <X className="w-4 h-4 stroke-[3px]" />
                 </button>
               </div>
               {content}
-            </Card>
+            </div>
           </div>
         )}
       </div>
