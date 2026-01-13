@@ -2,13 +2,11 @@ import type React from "react"
 import type { Metadata } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
-import "./globals.css"
+import "@/app/globals.css"
 import { Web3Provider } from "@/components/web3-provider"
-import { Navbar } from "@/components/navbar"
-import { Toaster } from "sonner"
 
-const _geist = Geist({ subsets: ["latin"] })
-const _geistMono = Geist_Mono({ subsets: ["latin"] })
+const geist = Geist({ subsets: ["latin"], variable: "--font-geist" })
+const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-geist-mono" })
 
 export const metadata: Metadata = {
   title: "ChainAid - Platform Donasi Transparan Berbasis Blockchain",
@@ -40,12 +38,10 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="id" suppressHydrationWarning>
-      <body className={`font-sans antialiased`} suppressHydrationWarning>
+    <html lang="id" suppressHydrationWarning className={`${geist.variable} ${geistMono.variable}`}>
+      <body className="font-sans antialiased" suppressHydrationWarning>
         <Web3Provider>
-          <Navbar />
           {children}
-          <Toaster position="top-right" richColors />
         </Web3Provider>
         <Analytics />
       </body>

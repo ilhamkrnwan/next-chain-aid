@@ -104,27 +104,27 @@ export function OrgTopBar() {
 
   return (
     <div className="h-16 border-b border-border bg-card flex items-center justify-between px-4 md:px-6">
-      <div className="flex items-center gap-3">
-        <Avatar className="w-10 h-10">
+      <div className="flex items-center gap-2 md:gap-3 min-w-0 flex-1 lg:ml-16">
+        <Avatar className="w-8 h-8 md:w-10 md:h-10 flex-shrink-0">
           <AvatarImage src={organization?.image_url || ""} />
           <AvatarFallback className="bg-blue-100 text-blue-600">
             {organization ? getInitials(organization.name) : "ORG"}
           </AvatarFallback>
         </Avatar>
-        <div className="hidden sm:block">
+        <div className="hidden sm:block min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <p className="font-semibold text-sm">
+            <p className="font-semibold text-sm truncate">
               {loading ? "Loading..." : organization?.name || "Organization"}
             </p>
             {getStatusBadge()}
           </div>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-muted-foreground truncate">
             {profile?.email || ""}
           </p>
         </div>
       </div>
 
-      <div className="flex items-center gap-2 md:gap-4">
+      <div className="flex items-center gap-2 md:gap-4 flex-shrink-0">
         {/* Notifications */}
         <Button variant="ghost" size="icon" className="relative">
           <Bell className="w-5 h-5" />
@@ -134,7 +134,7 @@ export function OrgTopBar() {
         {/* User Menu */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="flex items-center gap-2 h-10">
+            <Button variant="ghost" className="flex items-center gap-2 h-10 px-2 md:px-3">
               <Avatar className="w-8 h-8">
                 <AvatarImage src={profile?.avatar_url || ""} />
                 <AvatarFallback className="bg-purple-100 text-purple-600">

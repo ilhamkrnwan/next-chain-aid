@@ -70,10 +70,11 @@ export function AdminTopBar() {
   }
 
   return (
-    <div className="h-16 border-b border-border bg-card flex items-center justify-between px-6">
-      <div className="flex-1" />
+    <div className="h-16 border-b border-border bg-card flex items-center justify-between px-4 md:px-6">
+      {/* Left side - Empty for balance, can add breadcrumbs later */}
+      <div className="flex-1 lg:ml-16" />
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2 md:gap-4">
         {/* Notifications */}
         <Button variant="ghost" size="icon" className="relative">
           <Bell className="w-5 h-5" />
@@ -93,12 +94,12 @@ export function AdminTopBar() {
         {/* User Menu */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="flex items-center gap-2 h-10">
+            <Button variant="ghost" className="flex items-center gap-2 h-10 px-2 md:px-3">
               <Avatar className="w-8 h-8">
                 <AvatarImage src={profile?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile?.email || 'admin'}`} />
                 <AvatarFallback>{getInitials(profile?.full_name)}</AvatarFallback>
               </Avatar>
-              <span className="text-sm font-medium hidden sm:inline">
+              <span className="text-sm font-medium hidden md:inline">
                 {loading ? 'Loading...' : profile?.full_name || 'Admin'}
               </span>
             </Button>

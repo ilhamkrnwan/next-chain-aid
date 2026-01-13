@@ -5,7 +5,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { ConnectButton } from "@rainbow-me/rainbowkit"
 import { Button } from "@/components/ui/button"
-import { ShieldCheck, User, LogOut, History, LayoutDashboard } from "lucide-react"
+import { ShieldCheck, User, LogOut, History, LayoutDashboard, Menu, X } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import type { User as SupabaseUser } from "@supabase/supabase-js"
 import {
@@ -17,12 +17,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { cn } from "@/lib/utils"
 
 export function Navbar() {
   const router = useRouter()
   const [user, setUser] = useState<SupabaseUser | null>(null)
   const [profile, setProfile] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   useEffect(() => {
     const supabase = createClient()
@@ -63,6 +65,7 @@ export function Navbar() {
   const handleLogout = async () => {
     const supabase = createClient()
     await supabase.auth.signOut()
+    setMobileMenuOpen(false)
     router.push("/")
     router.refresh()
   }
@@ -88,9 +91,16 @@ export function Navbar() {
       .slice(0, 2)
   }
 
+  const navLinks = [
+    { href: "/campaigns", label: "Donasi" },
+    { href: "/transparansi", label: "Transparansi" },
+    { href: "/about", label: "Tentang Kami" },
+  ]
+
   return (
     <nav className="border-b border-slate-200/50 bg-white/80 backdrop-blur-xl supports-[backdrop-filter]:bg-white/80 sticky top-0 z-50 shadow-sm">
-      <div className="container flex h-16 items-center justify-between px-4 sm:px-8 mx-auto max-w-7xl">
+      <div className="container flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8 mx-auto max-w-7xl">
+        {/* Logo */}
         <div className="flex items-center gap-2">
           <Link href="/" className="flex items-center gap-2 font-bold text-xl group">
             <div className="relative">
@@ -99,23 +109,24 @@ export function Navbar() {
             </div>
             <span className="bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">ChainAid</span>
           </Link>
-          <div className="hidden md:flex items-center gap-6 ml-10 text-sm font-medium text-slate-600">
-            <Link href="/campaigns" className="hover:text-blue-600 transition-colors relative group">
-              Donasi
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 group-hover:w-full transition-all duration-300" />
-            </Link>
-            <Link href="/transparansi" className="hover:text-blue-600 transition-colors relative group">
-              Transparansi
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 group-hover:w-full transition-all duration-300" />
-            </Link>
-            <Link href="/about" className="hover:text-blue-600 transition-colors relative group">
-              Tentang Kami
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 group-hover:w-full transition-all duration-300" />
-            </Link>
-          </div>
         </div>
 
-        <div className="flex items-center gap-4">
+        {/* Desktop Navigation */}
+        <div className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-600">
+          {navLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className="hover:text-blue-600 transition-colors relative group"
+            >
+              {link.label}
+              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 group-hover:w-full transition-all duration-300" />
+            </Link>
+          ))}
+        </div>
+
+        {/* Desktop Actions */}
+        <div className="hidden md:flex items-center gap-3">
           <ConnectButton
             chainStatus="icon"
             showBalance={false}
@@ -185,7 +196,7 @@ export function Navbar() {
             </DropdownMenu>
           ) : (
             <div className="flex items-center gap-2">
-              <Button variant="ghost" asChild className="hidden sm:inline-flex hover:bg-blue-50 hover:text-blue-700">
+              <Button variant="ghost" asChild className="hover:bg-blue-50 hover:text-blue-700">
                 <Link href="/login">Masuk</Link>
               </Button>
               <Button asChild className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-md hover:shadow-lg transition-all duration-300">
@@ -193,6 +204,125 @@ export function Navbar() {
               </Button>
             </div>
           )}
+        </div>
+
+        {/* Mobile Menu Button */}
+        <div className="flex md:hidden items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="h-10 w-10"
+          >
+            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </Button>
+        </div>
+      </div>
+
+      {/* Mobile Menu */}
+      <div
+        className={cn(
+          "md:hidden fixed inset-x-0 top-16 bg-white border-b border-slate-200 shadow-lg transition-all duration-300 ease-in-out overflow-hidden",
+          mobileMenuOpen ? "max-h-screen opacity-100" : "max-h-0 opacity-0"
+        )}
+      >
+        <div className="container mx-auto px-4 py-4 space-y-4">
+          {/* Mobile Navigation Links */}
+          <div className="flex flex-col space-y-2">
+            {navLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                onClick={() => setMobileMenuOpen(false)}
+                className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+              >
+                {link.label}
+              </Link>
+            ))}
+          </div>
+
+          {/* Mobile User Section */}
+          {loading ? (
+            <div className="px-4 py-2">
+              <div className="w-full h-10 rounded-lg bg-slate-200 animate-pulse" />
+            </div>
+          ) : user && profile ? (
+            <div className="border-t border-slate-200 pt-4 space-y-2">
+              <div className="px-4 py-2">
+                <p className="text-sm font-medium">{profile.full_name || "User"}</p>
+                <p className="text-xs text-muted-foreground">{user.email}</p>
+                {profile.role && (
+                  <p className="text-xs text-blue-600 font-medium capitalize mt-1">
+                    {profile.role === "org" ? "Organisasi" : profile.role}
+                  </p>
+                )}
+              </div>
+              <Link
+                href={getDashboardLink()}
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center px-4 py-2 text-sm font-medium text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+              >
+                {profile?.role === "user" ? (
+                  <User className="mr-2 h-4 w-4" />
+                ) : (
+                  <LayoutDashboard className="mr-2 h-4 w-4" />
+                )}
+                <span>{getDashboardLabel()}</span>
+              </Link>
+              {(profile?.role === "admin" || profile?.role === "org") && (
+                <Link
+                  href="/profile"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center px-4 py-2 text-sm font-medium text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                >
+                  <User className="mr-2 h-4 w-4" />
+                  <span>Profil</span>
+                </Link>
+              )}
+              <Link
+                href="/history"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center px-4 py-2 text-sm font-medium text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+              >
+                <History className="mr-2 h-4 w-4" />
+                <span>Riwayat Donasi</span>
+              </Link>
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Logout</span>
+              </button>
+            </div>
+          ) : (
+            <div className="border-t border-slate-200 pt-4 space-y-2">
+              <Button
+                variant="ghost"
+                asChild
+                className="w-full justify-start hover:bg-blue-50 hover:text-blue-700"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <Link href="/login">Masuk</Link>
+              </Button>
+              <Button
+                asChild
+                className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <Link href="/register">Daftar</Link>
+              </Button>
+            </div>
+          )}
+
+          {/* Mobile Wallet Connect */}
+          <div className="border-t border-slate-200 pt-4">
+            <ConnectButton
+              chainStatus="icon"
+              showBalance={false}
+              accountStatus="avatar"
+            />
+          </div>
         </div>
       </div>
     </nav>
