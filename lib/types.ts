@@ -273,3 +273,13 @@ export interface BlockchainTransaction {
   txHash?: string
 }
 
+// ============================================================================
+// FastAPI Integration Types
+// ============================================================================
+
+export interface OrganizationDetail extends Organization {
+  profile: Profile
+  campaigns: Campaign[]
+}
+
+

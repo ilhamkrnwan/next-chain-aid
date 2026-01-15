@@ -1,25 +1,25 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 60" fill="none">
-  <!-- Neutral Grayscale version of the logo -->
   <defs>
     <linearGradient id="textGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" style="stop-color:#94a3b8;stop-opacity:1" /> <!-- Slate 400 -->
-      <stop offset="100%" style="stop-color:#cbd5e1;stop-opacity:1" /> <!-- Slate 300 -->
+      <stop offset="0%" style="stop-color:#1e293b;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#334155;stop-opacity:1" />
     </linearGradient>
-    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#94a3b8;stop-opacity:1" /> <!-- Slate 400 -->
-      <stop offset="100%" style="stop-color:#64748b;stop-opacity:1" /> <!-- Slate 500 -->
+        <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6366f1;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#a855f7;stop-opacity:1" />
     </linearGradient>
     <linearGradient id="grad2" x1="100%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" style="stop-color:#cbd5e1;stop-opacity:1" /> <!-- Slate 300 -->
-      <stop offset="100%" style="stop-color:#94a3b8;stop-opacity:1" /> <!-- Slate 400 -->
+      <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#06b6d4;stop-opacity:1" />
     </linearGradient>
   </defs>
 
   <!-- Logo Icon (Simplified) -->
   <g transform="translate(10, 10) scale(0.08)">
+      <!-- Identical paths to icon.svg but scaled -->
       <path d="M256 420C256 420 100 320 60 220C20 120 120 40 200 80C240 100 256 140 256 140" stroke="url(#grad2)" stroke-width="40" stroke-linecap="round" stroke-linejoin="round" />
       <path d="M256 420C256 420 412 320 452 220C492 120 392 40 312 80C272 100 256 140 256 140" stroke="url(#grad1)" stroke-width="40" stroke-linecap="round" stroke-linejoin="round" />
-      <circle cx="256" cy="190" r="25" fill="#f1f5f9" stroke="url(#grad2)" stroke-width="8" />
+      <circle cx="256" cy="190" r="25" fill="#fff" stroke="url(#grad2)" stroke-width="8" />
   </g>
 
   <!-- Text -->

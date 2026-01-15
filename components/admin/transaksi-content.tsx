@@ -190,7 +190,7 @@ export function TransaksiContent() {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Total Volume</p>
-                <p className="text-2xl font-bold text-foreground">{weiToEth(BigInt(stats.totalVolume))} ETH</p>
+                <p className="text-2xl font-bold text-foreground">{stats.totalVolume.toLocaleString('id-ID', { maximumFractionDigits: 6 })} ETH</p>
               </div>
             </div>
           </CardContent>

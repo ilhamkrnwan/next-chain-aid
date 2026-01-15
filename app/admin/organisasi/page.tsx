@@ -40,10 +40,13 @@ import {
   ExternalLink,
   Search,
   Ban,
-  ShieldCheck
+  ShieldCheck,
+  Printer
 } from "lucide-react"
 import { toast } from "sonner"
 import type { Organization, Profile } from "@/lib/types"
+import { getOrganizationDetail } from "@/lib/fastapi"
+import { generateAndDownloadOrganizationPDF } from "@/lib/pdf-generator"
 
 const STATUS_CONFIG = {
   approved: { label: "Disetujui", className: "bg-green-100 text-green-800 hover:bg-green-100" },
@@ -65,6 +68,7 @@ export default function OrganisasiPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all")
   const [banFilter, setBanFilter] = useState<string>("all")
   const [currentAdmin, setCurrentAdmin] = useState<Profile | null>(null)
+  const [printLoading, setPrintLoading] = useState<string | null>(null)
 
   useEffect(() => {
     loadData()
@@ -194,6 +198,28 @@ export default function OrganisasiPage() {
       toast.error(error.message || "Gagal meng-unban organisasi")
     } finally {
       setActionLoading(false)
+    }
+  }
+
+  const handlePrintOrganization = async (org: Organization) => {
+    setPrintLoading(org.id)
+    try {
+      toast.loading("Mengambil data organisasi...", { id: 'print-org' })
+      
+      // Fetch organization detail from FastAPI
+      const orgDetail = await getOrganizationDetail(org.id)
+      
+      toast.loading("Membuat PDF...", { id: 'print-org' })
+      
+      // Generate and download PDF (now async to support image loading)
+      await generateAndDownloadOrganizationPDF(orgDetail, org.name)
+      
+      toast.success("PDF berhasil diunduh!", { id: 'print-org' })
+    } catch (error: any) {
+      console.error('Error printing organization:', error)
+      toast.error(error.message || "Gagal membuat PDF", { id: 'print-org' })
+    } finally {
+      setPrintLoading(null)
     }
   }
 
@@ -411,6 +437,20 @@ export default function OrganisasiPage() {
                       >
                         <Eye className="w-4 h-4 mr-1" />
                         Detail
+                      </Button>
+                      
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handlePrintOrganization(org)}
+                        disabled={printLoading === org.id}
+                      >
+                        {printLoading === org.id ? (
+                          <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                        ) : (
+                          <Printer className="w-4 h-4 mr-1" />
+                        )}
+                        Print
                       </Button>
                       
                       {!org.is_banned && org.status === 'pending' && (
