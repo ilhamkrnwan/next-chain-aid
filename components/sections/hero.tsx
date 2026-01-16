@@ -70,44 +70,58 @@ export function Hero() {
           </div>
         </div>
 
-        {/* RIGHT IMAGE SECTION */}
-        <div className="relative order-1 lg:order-2 flex justify-center items-center">
-          {/* BACKGROUND SHAPE */}
-          <div className="absolute w-[80%] h-[80%] bg-blue-100 border-4 border-slate-900 rounded-[4rem] rotate-3 -z-10" />
+{/* RIGHT IMAGE SECTION */}
+        <div className="relative order-1 lg:order-2 flex justify-center items-center scale-90 sm:scale-100">
+          {/* BACKGROUND SHAPE (AKSEN BRUTALIST) */}
+          <div className="absolute w-[90%] h-[90%] bg-pink-500 border-4 border-slate-900 rounded-[3rem] rotate-6 -z-10 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)]" />
           
-          <div className="relative w-full max-w-[500px] aspect-square group">
+          <div className="relative w-full max-w-[550px] aspect-square group">
             {/* MAIN IMAGE CARD */}
-            <div className="absolute inset-0 bg-white border-4 border-slate-900 rounded-[3rem] overflow-hidden shadow-[20px_20px_0px_0px_rgba(15,23,42,1)] group-hover:shadow-none group-hover:translate-x-4 group-hover:translate-y-4 transition-all duration-500">
+            <div className="absolute inset-0 bg-white border-4 border-slate-900 rounded-[3rem] overflow-hidden shadow-[20px_20px_0px_0px_rgba(37,99,235,1)] group-hover:shadow-none group-hover:translate-x-4 group-hover:translate-y-4 transition-all duration-500">
               <Image 
-                src="http://googleusercontent.com/image_collection/image_retrieval/723434977496810484_0" 
-                alt="Blockchain Charity" 
+                // Gambar tangan berbagi dengan nuansa abstrak/teknologi
+                src="https://images.unsplash.com/photo-1593113598332-cd288d649433?q=80&w=2070&auto=format&fit=crop" 
+                alt="Donasi Blockchain Indonesia" 
                 fill 
-                className="object-cover"
+                className="object-cover grayscale hover:grayscale-0 transition-all duration-700 scale-110 group-hover:scale-100"
+                priority
               />
+              {/* OVERLAY TEKSTUR TITIK-TITIK */}
+              <div className="absolute inset-0 opacity-20 pointer-events-none" 
+                   style={{ backgroundImage: 'radial-gradient(#000 1.5px, transparent 1.5px)', backgroundSize: '15px 15px' }} />
             </div>
 
-            {/* FLOATING CARD 1 */}
-            <div className="absolute -top-6 -right-6 bg-white border-4 border-slate-900 p-4 rounded-2xl shadow-[6px_6px_0px_0px_rgba(37,99,235,1)] animate-bounce" style={{ animationDuration: '3s' }}>
+            {/* FLOATING CARD 1 - STATUS DONASI REAL-TIME */}
+            <div className="absolute -top-10 -right-6 bg-white border-4 border-slate-900 p-5 rounded-2xl shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] -rotate-3 hover:rotate-0 transition-transform">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-green-400 border-2 border-slate-900 rounded-full flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                  <ShieldCheck className="w-6 h-6 text-slate-900" />
+                </div>
+                <div>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Status Transaksi</p>
+                  <p className="text-sm font-black text-slate-900 leading-none uppercase">Terverifikasi <br/><span className="text-blue-600">On-Chain</span></p>
+                </div>
+              </div>
+            </div>
+
+            {/* FLOATING CARD 2 - KEAMANAN BLOCKCHAIN */}
+            <div className="absolute -bottom-8 -left-8 bg-yellow-400 border-4 border-slate-900 p-4 rounded-2xl shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] rotate-6 hover:rotate-0 transition-transform">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-green-400 border-2 border-slate-900 rounded-lg flex items-center justify-center font-black">
-                  ₿
+                <div className="p-2 bg-white border-2 border-slate-900 rounded-lg">
+                  <Zap className="w-6 h-6 text-pink-600 fill-current" />
                 </div>
-                <div className="text-[10px] font-black leading-none uppercase">
-                  New Donation <br />
-                  <span className="text-blue-600">0.52 ETH</span>
+                <div>
+                    <p className="text-[10px] font-black text-slate-900/60 uppercase leading-none">Donasi</p>
+                    <p className="text-xs font-black text-slate-900 uppercase italic">
+                      Tanpa <br /> Manipulasi
+                    </p>
                 </div>
               </div>
             </div>
 
-            {/* FLOATING CARD 2 */}
-            <div className="absolute -bottom-6 -left-6 bg-slate-900 border-4 border-slate-900 p-4 rounded-2xl shadow-[6px_6px_0px_0px_rgba(250,204,21,1)]">
-              <div className="flex items-center gap-3 text-white">
-                <ShieldCheck className="w-6 h-6 text-yellow-400" />
-                <div className="text-[10px] font-black leading-none uppercase">
-                  Verified <br />
-                  <span className="text-green-400">On-Chain</span>
-                </div>
-              </div>
+            {/* AKSEN DEKORATIF TAMBAHAN */}
+            <div className="absolute top-1/2 -left-12 w-16 h-16 bg-blue-600 border-4 border-slate-900 rounded-full flex items-center justify-center text-white font-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hidden sm:flex">
+              !
             </div>
           </div>
         </div>

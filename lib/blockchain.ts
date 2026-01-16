@@ -194,6 +194,39 @@ export async function getOrganizationBlockchainCampaigns(
   return factory.getOrganizationCampaigns(orgAddress)
 }
 
+/**
+ * FUNGSI TAMBAHAN: Ambil semua riwayat donasi milik satu wallet address
+ * Berguna untuk halaman /history supaya dinamis
+ */
+export async function getUserDonationHistory(walletAddress: string) {
+  const allCampaigns = await getAllBlockchainCampaigns()
+  
+  const historyPromises = allCampaigns.map(async (campaignAddr) => {
+    const contract = getCampaignContract(campaignAddr)
+    const donations = await contract.getAllDonations()
+    const summary = await getCampaignSummary(campaignAddr)
+    
+    return donations
+      .filter((d: any) => d.donor.toLowerCase() === walletAddress.toLowerCase())
+      .map((d: any) => ({
+        id: `${campaignAddr}-${d.timestamp}`,
+        campaign_id: campaignAddr,
+        campaign_title: summary.title,
+        amount: ethers.formatEther(d.amount),
+        message: d.message,
+        timestamp: Number(d.timestamp) * 1000,
+        tx_hash: "Blockchain Record", // Info hash transaksi biasanya didapat dari event indexing
+        campaign: {
+          image_url: "", // Ini nanti di-match di frontend dengan data Supabase
+          organization: { name: summary.organization }
+        }
+      }))
+  })
+
+  const results = await Promise.all(historyPromises)
+  return results.flat().sort((a, b) => b.timestamp - a.timestamp)
+}
+
 // ============================================================================
 // WRITE FUNCTIONS (CLIENT ONLY)
 // ============================================================================
@@ -265,7 +298,7 @@ export async function createBlockchainCampaign(
 
   const receipt = await tx.wait()
 
-  const eventLog = receipt.logs.find((log: any) => {
+  const eventLog = receipt?.logs.find((log: any) => {
     try {
       const parsed = factory.interface.parseLog(log)
       return parsed?.name === 'CampaignCreated'
@@ -278,15 +311,13 @@ export async function createBlockchainCampaign(
     throw new Error('CampaignCreated event tidak ditemukan')
   }
 
-const parsedEvent = factory.interface.parseLog(eventLog)
+  const parsedEvent = factory.interface.parseLog(eventLog)
 
-if (!parsedEvent) {
-  throw new Error('Gagal mem-parse event CampaignCreated')
-}
+  if (!parsedEvent) {
+    throw new Error('Gagal mem-parse event CampaignCreated')
+  }
 
-const contractAddress = parsedEvent.args[0]
-
-
+  const contractAddress = parsedEvent.args[0]
   return { contractAddress, receipt }
 }
 
