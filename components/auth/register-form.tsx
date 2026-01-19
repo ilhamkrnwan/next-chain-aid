@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Eye, EyeOff, Loader2, CheckCircle2 } from "lucide-react"
+import { Eye, EyeOff, Loader2, CheckCircle2, AlertCircle } from "lucide-react"
 
 export function RegisterForm() {
   const router = useRouter()
@@ -31,11 +31,11 @@ export function RegisterForm() {
 
   const validateForm = () => {
     if (formData.password.length < 6) {
-      setError("Password minimal 6 karakter")
+      setError("PASSWORD MINIMAL 6 KARAKTER!")
       return false
     }
     if (formData.password !== formData.confirmPassword) {
-      setError("Password tidak cocok")
+      setError("PASSWORD TIDAK COCOK, CEK LAGI!")
       return false
     }
     return true
@@ -53,8 +53,6 @@ export function RegisterForm() {
 
     try {
       const supabase = createClient()
-      
-      // Sign up user
       const { data, error } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
@@ -66,16 +64,12 @@ export function RegisterForm() {
       })
 
       if (error) throw error
-
-      // Show success message
       setSuccess(true)
-      
-      // Redirect to login after 2 seconds
       setTimeout(() => {
         router.push("/login")
-      }, 2000)
+      }, 3000)
     } catch (error: any) {
-      setError(error.message || "Pendaftaran gagal. Silakan coba lagi.")
+      setError(error.message?.toUpperCase() || "PENDAFTARAN GAGAL!")
     } finally {
       setLoading(false)
     }
@@ -83,121 +77,135 @@ export function RegisterForm() {
 
   if (success) {
     return (
-      <div className="text-center py-8">
-        <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
-          <CheckCircle2 className="w-8 h-8 text-green-600" />
+      <div className="text-center py-10 space-y-6 animate-in fade-in zoom-in duration-500">
+        <div className="inline-flex items-center justify-center w-24 h-24 bg-green-400 border-4 border-slate-900 rounded-3xl shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] rotate-6">
+          <CheckCircle2 className="w-12 h-12 text-slate-900" />
         </div>
-        <h3 className="text-xl font-semibold text-slate-900 mb-2">Pendaftaran Berhasil!</h3>
-        <p className="text-slate-600 mb-4">
-          Silakan cek email Anda untuk verifikasi akun.
-        </p>
-        <p className="text-sm text-slate-500">Mengalihkan ke halaman login...</p>
+        <div className="space-y-2">
+          <h3 className="text-3xl font-black text-slate-900 uppercase italic leading-none">BERHASIL DAFTAR!</h3>
+          <p className="text-xs font-bold text-slate-600 uppercase tracking-tighter italic">
+            Cek email ente buat verifikasi. <br /> Otomatis ke halaman login...
+          </p>
+        </div>
       </div>
     )
   }
 
   return (
-    <form onSubmit={handleRegister} className="space-y-4">
-      {/* Error Message */}
+    <form onSubmit={handleRegister} className="space-y-6">
+      {/* Error Message Brutalist Style */}
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-          {error}
+        <div className="bg-red-400 border-4 border-slate-900 p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-center gap-3 animate-bounce">
+          <AlertCircle className="w-6 h-6 text-slate-900 shrink-0" />
+          <p className="text-[10px] font-black text-slate-900 uppercase leading-none">
+            {error}
+          </p>
         </div>
       )}
 
       {/* Full Name Field */}
       <div className="space-y-2">
-        <Label htmlFor="fullName">Nama Lengkap</Label>
+        <Label htmlFor="fullName" className="text-xs font-black uppercase tracking-widest text-slate-900 italic">
+          Nama Lengkap
+        </Label>
         <Input
           id="fullName"
           name="fullName"
-          type="text"
-          placeholder="John Doe"
+          placeholder="CONTOH: Dinda Mutiara"
           value={formData.fullName}
           onChange={handleChange}
           required
           disabled={loading}
-          className="h-11"
+          className="h-14 border-4 border-slate-900 rounded-xl bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus-visible:ring-0 focus-visible:translate-x-[2px] focus-visible:translate-y-[2px] focus-visible:shadow-none transition-all placeholder:text-slate-300 font-bold uppercase italic"
         />
       </div>
 
       {/* Email Field */}
       <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
+        <Label htmlFor="email" className="text-xs font-black uppercase tracking-widest text-slate-900 italic">
+          Email Institusi
+        </Label>
         <Input
           id="email"
           name="email"
           type="email"
-          placeholder="nama@example.com"
+          placeholder="XXXX@STUDENT.UNU-JOGJA.AC.ID"
           value={formData.email}
           onChange={handleChange}
           required
           disabled={loading}
-          className="h-11"
+          className="h-14 border-4 border-slate-900 rounded-xl bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus-visible:ring-0 focus-visible:translate-x-[2px] focus-visible:translate-y-[2px] focus-visible:shadow-none transition-all placeholder:text-slate-300 font-bold uppercase italic"
         />
       </div>
 
-      {/* Password Field */}
-      <div className="space-y-2">
-        <Label htmlFor="password">Password</Label>
-        <div className="relative">
-          <Input
-            id="password"
-            name="password"
-            type={showPassword ? "text" : "password"}
-            placeholder="Minimal 6 karakter"
-            value={formData.password}
-            onChange={handleChange}
-            required
-            disabled={loading}
-            className="h-11 pr-10"
-          />
-          <button
-            type="button"
-            onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
-            tabIndex={-1}
-          >
-            {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-          </button>
+      {/* Password Fields Wrapper */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="password" className="text-[10px] font-black uppercase tracking-widest text-slate-900 italic">
+            Password
+          </Label>
+          <div className="relative">
+            <Input
+              id="password"
+              name="password"
+              type={showPassword ? "text" : "password"}
+              placeholder="******"
+              value={formData.password}
+              onChange={handleChange}
+              required
+              disabled={loading}
+              className="h-14 border-4 border-slate-900 rounded-xl bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus-visible:ring-0 focus-visible:shadow-none transition-all font-bold pr-12"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-900"
+            >
+              {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+            </button>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="confirmPassword" className="text-[10px] font-black uppercase tracking-widest text-slate-900 italic">
+            Konfirmasi
+          </Label>
+          <div className="relative">
+            <Input
+              id="confirmPassword"
+              name="confirmPassword"
+              type={showConfirmPassword ? "text" : "password"}
+              placeholder="******"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              required
+              disabled={loading}
+              className="h-14 border-4 border-slate-900 rounded-xl bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus-visible:ring-0 focus-visible:shadow-none transition-all font-bold pr-12"
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-900"
+            >
+              {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Confirm Password Field */}
-      <div className="space-y-2">
-        <Label htmlFor="confirmPassword">Konfirmasi Password</Label>
-        <div className="relative">
-          <Input
-            id="confirmPassword"
-            name="confirmPassword"
-            type={showConfirmPassword ? "text" : "password"}
-            placeholder="Ulangi password"
-            value={formData.confirmPassword}
-            onChange={handleChange}
-            required
-            disabled={loading}
-            className="h-11 pr-10"
-          />
-          <button
-            type="button"
-            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
-            tabIndex={-1}
-          >
-            {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-          </button>
-        </div>
-      </div>
-
-      {/* Submit Button */}
-      <Button type="submit" className="w-full h-11 bg-blue-600 hover:bg-blue-700" disabled={loading}>
+      {/* Submit Button Neo-Brutalism */}
+      <Button 
+        type="submit" 
+        disabled={loading}
+        className="w-full h-16 bg-blue-600 hover:bg-blue-600 border-4 border-slate-900 rounded-2xl shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all text-white text-xl font-black uppercase italic tracking-tighter"
+      >
         {loading ? (
-          <>
-            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-            Memproses...
-          </>
+          <div className="flex items-center gap-3">
+            <Loader2 className="w-6 h-6 animate-spin text-yellow-400" />
+            <span>PROSES...</span>
+          </div>
         ) : (
-          "Daftar Sekarang"
+          "DAFTAR SEKARANG!"
         )}
       </Button>
     </form>

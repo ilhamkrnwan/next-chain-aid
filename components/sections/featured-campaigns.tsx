@@ -8,12 +8,14 @@ import Image from "next/image"
 import Link from "next/link"
 import { getActiveCampaigns } from "@/lib/api"
 import { getCampaignSummary, weiToEth } from "@/lib/blockchain"
-import type { Campaign } from "@/lib/types"
-import { ArrowRight, TrendingUp } from "lucide-react"
+import { ArrowRight, Users, Target, Zap, ShieldCheck, Coins } from "lucide-react"
 
 export function FeaturedCampaigns() {
-  const [campaigns, setCampaigns] = useState<Campaign[]>([])
+  const [campaigns, setCampaigns] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+
+  // KONSTANTA KURS (Sesuaikan dengan harga ETH saat ini)
+  const ETH_PRICE_IDR = 45000000 // Misal 1 ETH = 45 Juta Rupiah
 
   useEffect(() => {
     loadCampaigns()
@@ -21,228 +23,154 @@ export function FeaturedCampaigns() {
 
   const loadCampaigns = async () => {
     try {
-      console.log('Fetching active campaigns...')
       const data = await getActiveCampaigns(3)
-      console.log('Active campaigns fetched:', data.length, data)
       
-      // Fetch blockchain data for campaigns with contract addresses
       const campaignsWithBlockchain = await Promise.all(
-        data.map(async (campaign) => {
-          if (campaign.contract_address) {
+        data.map(async (campaign: any) => {
+          // 1. KONVERSI TARGET (IDR ke ETH)
+          // Jika di DB 10.000.000, maka 10jt / 45jt = ~0.22 ETH
+          const targetInIdr = Number(campaign.target_amount) || 0
+          const targetInEth = targetInIdr / ETH_PRICE_IDR
+          
+          let collectedInEth = 0
+          let donorsCount = 0
+
+          // 2. AMBIL DATA ON-CHAIN (SEPOLIA)
+          if (campaign.contract_address && campaign.contract_address !== "0x0") {
             try {
-              console.log(`Fetching blockchain data for campaign ${campaign.id}...`)
               const summary = await getCampaignSummary(campaign.contract_address)
-              console.log(`Blockchain data for ${campaign.id}:`, summary)
-              return {
-                ...campaign,
-                collected_amount: summary.collectedAmount ? parseFloat(weiToEth(summary.collectedAmount)) : 0,
-                donor_count: summary.donorCount || 0,
-              }
+              collectedInEth = parseFloat(weiToEth(summary.collectedAmount))
+              donorsCount = Number(summary.donorCount)
             } catch (error) {
-              console.error(`Failed to fetch blockchain data for ${campaign.id}:`, error)
-              return campaign
+              console.error(`Gagal sync blockchain: ${campaign.title}`)
             }
           }
-          return campaign
+
+          // 3. HITUNG PERSENTASE (ETH vs ETH)
+          const percentage = targetInEth > 0 ? (collectedInEth / targetInEth) * 100 : 0
+
+          return {
+            ...campaign,
+            collected_amount: collectedInEth,
+            target_amount_eth: targetInEth, // Ini hasil konversi
+            target_amount_idr: targetInIdr, // Simpan aslinya jika butuh
+            donor_count: donorsCount,
+            percentage: percentage
+          }
         })
       )
 
-      console.log('Campaigns with blockchain data:', campaignsWithBlockchain)
       setCampaigns(campaignsWithBlockchain)
     } catch (error) {
-      console.error('Failed to load campaigns:', error)
-      // Set empty array on error so we can show "no campaigns" message
       setCampaigns([])
     } finally {
       setLoading(false)
     }
   }
 
-  const calculateProgress = (collected: number, target: number) => {
-    if (!target || target === 0) return 0
-    return Math.min((collected / target) * 100, 100)
-  }
-
-  const formatCurrency = (amount: number) => {
-    if (amount >= 1000000000) return `${(amount / 1000000000).toFixed(1)}M`
-    if (amount >= 1000000) return `${(amount / 1000000).toFixed(1)}Jt`
-    if (amount >= 1000) return `${(amount / 1000).toFixed(0)}K`
-    return amount.toFixed(0)
-  }
-
-  const getCategoryColor = (category: string) => {
-    const colors: Record<string, string> = {
-      kesehatan: "bg-rose-500",
-      pendidikan: "bg-blue-500",
-      bencana_alam: "bg-orange-500",
-      lingkungan: "bg-green-500",
-      sosial: "bg-purple-500",
-      ekonomi: "bg-yellow-500",
-      lainnya: "bg-slate-500",
-    }
-    return colors[category] || colors.lainnya
-  }
-
-  const getCategoryLabel = (category: string) => {
-    const labels: Record<string, string> = {
-      kesehatan: "Kesehatan",
-      pendidikan: "Pendidikan",
-      bencana_alam: "Bencana Alam",
-      lingkungan: "Lingkungan",
-      sosial: "Sosial",
-      ekonomi: "Ekonomi",
-      lainnya: "Lainnya",
-    }
-    return labels[category] || "Lainnya"
-  }
-
   if (loading) {
     return (
-      <section className="bg-gradient-to-b from-slate-50/50 via-white to-slate-50/50 py-16 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto space-y-12">
-          <div className="space-y-3 text-center">
-            <Skeleton className="h-12 w-64 mx-auto" />
-            <Skeleton className="h-6 w-96 mx-auto" />
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[1, 2, 3].map((i) => (
-              <Card key={i} className="overflow-hidden">
-                <Skeleton className="aspect-video w-full" />
-                <div className="p-5 space-y-4">
-                  <Skeleton className="h-6 w-full" />
-                  <Skeleton className="h-4 w-32" />
-                  <Skeleton className="h-2 w-full" />
-                  <Skeleton className="h-10 w-full" />
-                </div>
-              </Card>
-            ))}
-          </div>
-        </div>
+      <section className="py-24 px-4 max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-10">
+        {[1, 2, 3].map((i) => <Skeleton key={i} className="h-[500px] w-full rounded-[3rem]" />)}
       </section>
     )
   }
 
   return (
-    <section className="bg-gradient-to-b from-slate-50/50 via-white to-slate-50/50 py-16 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto space-y-12">
-        <div className="space-y-3 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 border border-blue-100">
-            <TrendingUp className="w-4 h-4 text-blue-600" />
-            <span className="text-sm font-medium text-blue-900">Campaign Pilihan</span>
+    <section className="bg-[#FAFAFA] py-24 px-4 sm:px-6 lg:px-8 relative">
+      <div className="max-w-7xl mx-auto space-y-16">
+        
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row justify-between items-end gap-8 border-b-4 border-slate-900 pb-10">
+          <div className="space-y-4">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-yellow-400 text-slate-900 border-2 border-slate-900 font-black text-xs uppercase italic shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+              <Zap className="w-4 h-4 fill-current" /> Live On Sepolia
+            </div>
+            <h2 className="text-6xl md:text-8xl font-black text-slate-900 tracking-tighter leading-none">
+              KAMPANYE <span className="text-blue-600">ETH</span>
+            </h2>
           </div>
-          <h2 className="text-4xl sm:text-5xl font-bold bg-gradient-to-br from-slate-900 to-slate-700 bg-clip-text text-transparent">
-            Campaign Unggulan
-          </h2>
-          <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-            Dukung campaign yang membuat perbedaan nyata di komunitas
-          </p>
+          <Link href="/campaigns">
+            <Button className="h-16 px-10 rounded-2xl bg-slate-900 text-white font-black hover:bg-blue-600 transition-all cursor-pointer text-lg shadow-[8px_8px_0px_0px_rgba(59,130,246,1)] hover:shadow-none active:translate-y-1">
+              JELAJAHI <ArrowRight className="ml-2 w-6 h-6" />
+            </Button>
+          </Link>
         </div>
 
-        {campaigns.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-lg text-slate-600">Belum ada campaign aktif saat ini</p>
-          </div>
-        ) : (
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {campaigns.map((campaign) => {
-                const progress = calculateProgress(
-                  campaign.collected_amount || 0,
-                  campaign.target_amount
-                )
+        {/* Campaign Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
+          {campaigns.map((campaign) => {
+            const perc = campaign.percentage || 0
+            const displayPerc = perc > 0 && perc < 1 ? perc.toFixed(2) : Math.floor(perc)
 
-                return (
-                  <Card
-                    key={campaign.id}
-                    className="group overflow-hidden hover:shadow-2xl transition-all duration-300 border border-slate-200 hover:border-blue-200 bg-white"
-                  >
-                    <Link href={`/campaigns/${campaign.id}`}>
-                      <div className="relative aspect-video overflow-hidden bg-gradient-to-br from-slate-100 to-slate-200">
-                        {campaign.image_url ? (
-                          <Image
-                            src={campaign.image_url}
-                            alt={campaign.title}
-                            fill
-                            className="object-cover group-hover:scale-105 transition-transform duration-500"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <span className="text-slate-400 text-sm">No Image</span>
-                          </div>
-                        )}
-                        <span
-                          className={`absolute top-3 right-3 ${getCategoryColor(campaign.category)} text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-lg backdrop-blur-sm`}
-                        >
-                          {getCategoryLabel(campaign.category)}
-                        </span>
-                      </div>
-                    </Link>
-
-                    <div className="p-5 space-y-4">
-                      <Link href={`/campaigns/${campaign.id}`}>
-                        <div className="space-y-2">
-                          <h3 className="font-bold text-lg text-slate-900 line-clamp-2 group-hover:text-blue-600 transition-colors">
-                            {campaign.title}
-                          </h3>
-                          <p className="text-sm text-slate-600 flex items-center gap-1">
-                            <span className="font-medium">
-                              {campaign.organization?.name || "Organisasi"}
-                            </span>
-                          </p>
-                        </div>
-                      </Link>
-
-                      <div className="space-y-3">
-                        <div className="space-y-2">
-                          <div className="flex justify-between text-sm">
-                            <span className="text-slate-600">Terkumpul</span>
-                            <span className="font-semibold text-blue-600">
-                              {progress.toFixed(0)}%
-                            </span>
-                          </div>
-                          <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
-                            <div
-                              className="bg-gradient-to-r from-blue-500 to-blue-600 h-2.5 rounded-full transition-all duration-500 shadow-sm"
-                              style={{ width: `${progress}%` }}
-                            />
-                          </div>
-                        </div>
-
-                        <div className="flex justify-between text-sm">
-                          <span className="text-slate-600">
-                            Rp {formatCurrency(campaign.collected_amount || 0)}
-                          </span>
-                          <span className="font-semibold text-slate-900">
-                            dari Rp {formatCurrency(campaign.target_amount)}
-                          </span>
-                        </div>
-                      </div>
-
-                      <Link href={`/donate/${campaign.id}`} className="block">
-                        <Button className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl h-11 font-semibold shadow-md hover:shadow-lg transition-all duration-300">
-                          Donasi Sekarang
-                        </Button>
-                      </Link>
+            return (
+              <Card 
+                key={campaign.id} 
+                className="group border-4 border-slate-900 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] rounded-[2.5rem] bg-white overflow-hidden hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all cursor-pointer"
+              >
+                <Link href={`/campaigns/${campaign.id}`} className="block">
+                  {/* Image Container */}
+                  <div className="relative h-64 overflow-hidden border-b-4 border-slate-900">
+                    <Image
+                      src={campaign.image_url || "/placeholder.svg"}
+                      alt={campaign.title}
+                      fill
+                      className="object-cover transition-transform duration-500 group-hover:scale-110"
+                    />
+                    <div className="absolute top-4 right-4 bg-white border-2 border-slate-900 px-3 py-1 rounded-lg font-black text-xs">
+                      {campaign.category || 'SOSIAL'}
                     </div>
-                  </Card>
-                )
-              })}
-            </div>
+                  </div>
 
-            <div className="text-center pt-6">
-              <Link href="/campaigns">
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="border-2 border-blue-600/50 text-blue-700 hover:bg-blue-50 hover:border-blue-600 px-8 rounded-full font-semibold gap-2 bg-white transition-all duration-300"
-                >
-                  Lihat Semua Campaign
-                  <ArrowRight className="w-5 h-5" />
-                </Button>
-              </Link>
-            </div>
-          </>
-        )}
+                  {/* Content */}
+                  <div className="p-8 space-y-6">
+                    <h3 className="text-2xl font-black text-slate-900 leading-tight uppercase italic min-h-[4rem]">
+                      {campaign.title}
+                    </h3>
+
+                    {/* Progress Stats */}
+                    <div className="space-y-4 p-6 bg-slate-50 border-2 border-slate-900 rounded-2xl">
+                      <div className="flex justify-between items-end">
+                        <div className="space-y-1">
+                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Terkumpul</p>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-3xl font-black text-blue-600">{(campaign.collected_amount || 0).toFixed(3)}</span>
+                            <span className="text-sm font-black text-slate-900">ETH</span>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-4xl font-black text-slate-900 tracking-tighter">{displayPerc}%</span>
+                        </div>
+                      </div>
+
+                      {/* Progress Bar Neo-Brutalist */}
+                      <div className="h-4 w-full bg-white border-2 border-slate-900 rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-blue-500 border-r-2 border-slate-900 transition-all duration-1000"
+                          style={{ width: `${Math.min(perc, 100)}%` }}
+                        />
+                      </div>
+                      
+                      <p className="text-[10px] font-black text-slate-500 uppercase flex items-center gap-2">
+                        <Target className="w-3 h-3" /> Target: {campaign.target_amount_eth.toFixed(3)} ETH 
+                        <span className="text-slate-300">|</span> 
+                        Rp {Number(campaign.target_amount).toLocaleString('id-ID')}
+                      </p>
+                    </div>
+
+                    <div className="flex justify-between items-center px-2">
+                      <div className="flex items-center gap-2 text-slate-600">
+                        <Users className="w-5 h-5" />
+                        <span className="text-xs font-black uppercase tracking-tighter">{campaign.donor_count} Donatur</span>
+                      </div>
+                      <ShieldCheck className="w-6 h-6 text-green-500" />
+                    </div>
+                  </div>
+                </Link>
+              </Card>
+            )
+          })}
+        </div>
       </div>
     </section>
   )

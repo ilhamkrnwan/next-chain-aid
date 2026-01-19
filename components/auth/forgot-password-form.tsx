@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Loader2, CheckCircle2, Mail } from "lucide-react"
+import { Loader2, CheckCircle2, Mail, AlertCircle } from "lucide-react"
 
 export function ForgotPasswordForm() {
   const [email, setEmail] = useState("")
@@ -28,7 +28,7 @@ export function ForgotPasswordForm() {
 
       setSuccess(true)
     } catch (error: any) {
-      setError(error.message || "Gagal mengirim email reset. Silakan coba lagi.")
+      setError(error.message?.toUpperCase() || "GAGAL MENGIRIM PERMINTAAN RESET PASSWORD.")
     } finally {
       setLoading(false)
     }
@@ -36,60 +36,73 @@ export function ForgotPasswordForm() {
 
   if (success) {
     return (
-      <div className="text-center py-8">
-        <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
-          <CheckCircle2 className="w-8 h-8 text-green-600" />
+      <div className="text-center py-10 space-y-6 animate-in fade-in zoom-in duration-500">
+        <div className="inline-flex items-center justify-center w-24 h-24 bg-green-400 border-4 border-slate-900 rounded-3xl shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] rotate-6">
+          <CheckCircle2 className="w-12 h-12 text-slate-900" />
         </div>
-        <h3 className="text-xl font-semibold text-slate-900 mb-2">Email Terkirim!</h3>
-        <p className="text-slate-600 mb-4">
-          Kami telah mengirim link reset password ke <strong>{email}</strong>
-        </p>
-        <p className="text-sm text-slate-500">
-          Silakan cek inbox atau folder spam Anda.
-        </p>
+        <div className="space-y-2">
+          <h3 className="text-3xl font-black text-slate-900 uppercase italic leading-none">EMAIL TERKIRIM!</h3>
+          <p className="text-xs font-bold text-slate-600 uppercase tracking-tight italic px-4">
+            Tautan pemulihan kata sandi telah dikirimkan ke alamat email: <br />
+            <span className="text-blue-600 bg-blue-50 px-1">{email}</span>
+          </p>
+        </div>
       </div>
     )
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      {/* Error Message */}
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Pesan Galat */}
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-          {error}
+        <div className="bg-red-400 border-4 border-slate-900 p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-center gap-3 animate-bounce">
+          <AlertCircle className="w-6 h-6 text-slate-900 shrink-0" />
+          <p className="text-[10px] font-black text-slate-900 uppercase leading-none">
+            {error}
+          </p>
         </div>
       )}
 
-      {/* Info */}
-      <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-lg text-sm flex items-start gap-3">
-        <Mail className="w-5 h-5 flex-shrink-0 mt-0.5" />
-        <p>Masukkan email yang terdaftar. Kami akan mengirimkan link untuk reset password Anda.</p>
+      {/* Informasi Instruksi */}
+      <div className="bg-yellow-300 border-4 border-slate-900 p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-start gap-4">
+        <div className="bg-white border-2 border-slate-900 p-1 rounded-lg">
+          <Mail className="w-5 h-5 text-slate-900 flex-shrink-0" />
+        </div>
+        <p className="text-[11px] font-black text-slate-900 uppercase leading-tight italic">
+          Masukkan alamat email yang telah terdaftar. Kami akan mengirimkan tautan untuk mengatur ulang kata sandi Anda.
+        </p>
       </div>
 
-      {/* Email Field */}
+      {/* Bidang Email */}
       <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
+        <Label htmlFor="email" className="text-xs font-black uppercase tracking-widest text-slate-900 italic">
+          Alamat Email
+        </Label>
         <Input
           id="email"
           type="email"
-          placeholder="nama@example.com"
+          placeholder="CONTOH: NAMA@STUDENT.UNU-JOGJA.AC.ID"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) => setEmail(e.target.value.toUpperCase())}
           required
           disabled={loading}
-          className="h-11"
+          className="h-14 border-4 border-slate-900 rounded-xl bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus-visible:ring-0 focus-visible:translate-x-[2px] focus-visible:translate-y-[2px] focus-visible:shadow-none transition-all placeholder:text-slate-300 font-bold uppercase italic"
         />
       </div>
 
-      {/* Submit Button */}
-      <Button type="submit" className="w-full h-11 bg-blue-600 hover:bg-blue-700" disabled={loading}>
+      {/* Tombol Kirim */}
+      <Button 
+        type="submit" 
+        disabled={loading}
+        className="w-full h-16 bg-pink-500 hover:bg-pink-500 border-4 border-slate-900 rounded-2xl shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all text-white text-xl font-black uppercase italic tracking-tighter"
+      >
         {loading ? (
-          <>
-            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-            Mengirim...
-          </>
+          <div className="flex items-center gap-3">
+            <Loader2 className="w-6 h-6 animate-spin text-white" />
+            <span>MENGIRIM...</span>
+          </div>
         ) : (
-          "Kirim Link Reset"
+          "KIRIM TAUTAN RESET"
         )}
       </Button>
     </form>

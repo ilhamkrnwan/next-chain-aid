@@ -1,144 +1,115 @@
 "use client"
 
-import { Facebook, Twitter, Instagram, Linkedin, ShieldCheck } from "lucide-react"
+import { Instagram, Twitter, Linkedin, ShieldCheck, Zap, Mail, MapPin } from "lucide-react"
 import Link from "next/link"
 
 export function Footer() {
+  const year = new Date().getFullYear()
+
   return (
-    <footer className="relative bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 text-slate-300 py-16 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-8 overflow-hidden">
-      {/* Decorative background */}
-      <div className="absolute top-0 left-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl" />
-      <div className="absolute bottom-0 right-0 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl" />
+    <footer className="relative bg-slate-900 text-white py-16 px-4 sm:px-6 lg:px-8 border-t-8 border-blue-600 overflow-hidden">
+      {/* DEKORASI BACKGROUND */}
+      <div className="absolute inset-0 opacity-[0.03] pointer-events-none" 
+           style={{ backgroundImage: 'radial-gradient(#fff 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
 
-      <div className="relative z-10 max-w-7xl mx-auto space-y-12">
-        {/* Main footer content */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8">
-          {/* Brand */}
-          <div className="space-y-4 lg:col-span-2">
-            <Link href="/" className="flex items-center gap-2">
-              <ShieldCheck className="h-8 w-8 text-blue-400" />
-              <h3 className="text-2xl font-bold text-white">ChainAid</h3>
+      <div className="relative z-10 max-w-7xl mx-auto space-y-16">
+        
+        {/* KONTEN UTAMA */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
+          
+          {/* IDENTITAS BRAND */}
+          <div className="space-y-6 lg:col-span-1">
+            <Link href="/" className="inline-flex items-center gap-3 bg-white px-4 py-2 border-4 border-blue-600 rounded-xl shadow-[6px_6px_0px_0px_rgba(37,99,235,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all">
+              <ShieldCheck className="h-7 w-7 text-blue-600" />
+              <h3 className="text-2xl font-black text-slate-900 tracking-tighter italic uppercase leading-none">ChainAid</h3>
             </Link>
-            <p className="text-sm text-slate-400 leading-relaxed max-w-sm">
-              Platform donasi transparan berbasis blockchain untuk dampak sosial yang lebih baik. Setiap kontribusi Anda tercatat dan dapat diverifikasi.
+            <p className="text-sm font-bold text-slate-400 leading-relaxed uppercase italic">
+              Platform filantropi berbasis blockchain. Menjamin akuntabilitas dan transparansi setiap donasi secara real-time melalui teknologi on-chain.
             </p>
-            <div className="flex gap-4 pt-2">
-              <a
-                href="#"
-                className="w-10 h-10 rounded-full bg-slate-800/50 hover:bg-blue-600 flex items-center justify-center transition-all duration-300 hover:scale-110"
-              >
-                <Facebook className="w-5 h-5" />
-              </a>
-              <a
-                href="#"
-                className="w-10 h-10 rounded-full bg-slate-800/50 hover:bg-blue-400 flex items-center justify-center transition-all duration-300 hover:scale-110"
-              >
-                <Twitter className="w-5 h-5" />
-              </a>
-              <a
-                href="#"
-                className="w-10 h-10 rounded-full bg-slate-800/50 hover:bg-pink-600 flex items-center justify-center transition-all duration-300 hover:scale-110"
-              >
-                <Instagram className="w-5 h-5" />
-              </a>
-              <a
-                href="#"
-                className="w-10 h-10 rounded-full bg-slate-800/50 hover:bg-blue-700 flex items-center justify-center transition-all duration-300 hover:scale-110"
-              >
-                <Linkedin className="w-5 h-5" />
-              </a>
+          </div>
+
+          {/* NAVIGASI - SINKRON DENGAN NAVBAR */}
+          <div className="space-y-6">
+            <h4 className="text-lg font-black text-blue-400 uppercase tracking-widest italic border-l-4 border-blue-600 pl-3">Navigasi Utama</h4>
+            <ul className="space-y-3">
+              <li>
+                <Link href="/" className="text-xs font-black text-slate-300 hover:text-white uppercase tracking-widest transition-colors flex items-center gap-2 group">
+                  <Zap className="w-3 h-3 text-blue-600 group-hover:fill-blue-600 transition-all" /> Beranda
+                </Link>
+              </li>
+              <li>
+                <Link href="/campaigns" className="text-xs font-black text-slate-300 hover:text-white uppercase tracking-widest transition-colors flex items-center gap-2 group">
+                  <Zap className="w-3 h-3 text-blue-600 group-hover:fill-blue-600 transition-all" /> Donasi
+                </Link>
+              </li>
+              <li>
+                <Link href="/transparansi" className="text-xs font-black text-slate-300 hover:text-white uppercase tracking-widest transition-colors flex items-center gap-2 group">
+                  <Zap className="w-3 h-3 text-blue-600 group-hover:fill-blue-600 transition-all" /> Transparansi
+                </Link>
+              </li>
+              <li>
+                <Link href="/about" className="text-xs font-black text-slate-300 hover:text-white uppercase tracking-widest transition-colors flex items-center gap-2 group">
+                  <Zap className="w-3 h-3 text-blue-600 group-hover:fill-blue-600 transition-all" /> Tentang
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* LOKASI & KONTAK - YOGYAKARTA */}
+          <div className="space-y-6">
+            <h4 className="text-lg font-black text-yellow-400 uppercase tracking-widest italic border-l-4 border-yellow-400 pl-3">Markas Besar</h4>
+            <ul className="space-y-3 font-bold text-xs uppercase tracking-widest text-slate-300 italic">
+              <li className="flex items-start gap-3 leading-tight">
+                <MapPin className="w-4 h-4 text-yellow-400 flex-shrink-0 mt-0.5" />
+                <span>Yogyakarta, <br />Indonesia</span>
+              </li>
+              <li className="flex items-center gap-3">
+                <Mail className="w-4 h-4 text-yellow-400 flex-shrink-0" />
+                <span>kontak@chainaid.id</span>
+              </li>
+            </ul>
+          </div>
+
+          {/* MEDIA SOSIAL */}
+          <div className="space-y-6">
+            <h4 className="text-lg font-black text-pink-500 uppercase tracking-widest italic border-l-4 border-pink-500 pl-3">Kanal Sosial</h4>
+            <div className="flex gap-3">
+              {[
+                { Icon: Instagram, href: "https://instagram.com/chainaid" },
+                { Icon: Twitter, href: "https://twitter.com/chainaid" },
+                { Icon: Linkedin, href: "https://linkedin.com/company/chainaid" }
+              ].map((social, i) => (
+                <a
+                  key={i}
+                  href={social.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-10 h-10 bg-slate-800 border-2 border-slate-700 flex items-center justify-center rounded-lg transition-all hover:bg-white hover:text-slate-900 hover:-translate-y-1 shadow-[3px_3px_0px_0px_rgba(255,255,255,0.1)] hover:shadow-none"
+                >
+                  <social.Icon className="w-5 h-5" />
+                </a>
+              ))}
             </div>
-          </div>
-
-          {/* Quick Links */}
-          <div className="space-y-4">
-            <h4 className="font-semibold text-white text-sm uppercase tracking-wide">Platform</h4>
-            <ul className="space-y-3 text-sm">
-              <li>
-                <Link href="/about" className="hover:text-blue-400 transition-colors">
-                  Tentang Kami
-                </Link>
-              </li>
-              <li>
-                <Link href="/campaigns" className="hover:text-blue-400 transition-colors">
-                  Campaign
-                </Link>
-              </li>
-              <li>
-                <Link href="/transparansi" className="hover:text-blue-400 transition-colors">
-                  Transparansi
-                </Link>
-              </li>
-              <li>
-                <Link href="/register-org" className="hover:text-blue-400 transition-colors">
-                  Daftar Organisasi
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Resources */}
-          <div className="space-y-4">
-            <h4 className="font-semibold text-white text-sm uppercase tracking-wide">Sumber Daya</h4>
-            <ul className="space-y-3 text-sm">
-              <li>
-                <a href="#" className="hover:text-blue-400 transition-colors">
-                  Blog
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-blue-400 transition-colors">
-                  FAQ
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-blue-400 transition-colors">
-                  Panduan
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-blue-400 transition-colors">
-                  Kontak
-                </a>
-              </li>
-            </ul>
-          </div>
-
-          {/* Legal */}
-          <div className="space-y-4">
-            <h4 className="font-semibold text-white text-sm uppercase tracking-wide">Legal</h4>
-            <ul className="space-y-3 text-sm">
-              <li>
-                <a href="#" className="hover:text-blue-400 transition-colors">
-                  Privasi
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-blue-400 transition-colors">
-                  Syarat & Ketentuan
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-blue-400 transition-colors">
-                  Kebijakan Cookie
-                </a>
-              </li>
-            </ul>
           </div>
         </div>
 
-        {/* Divider */}
-        <div className="border-t border-slate-800/50" />
-
-        {/* Bottom section */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-slate-400">
-          <p>© 2025 ChainAid. Semua hak dilindungi.</p>
-          <p className="flex items-center gap-2">
-            Powered by{" "}
-            <span className="font-semibold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-              Blockchain Ethereum
+        {/* BOTTOM SECTION */}
+        <div className="pt-10 border-t-2 border-slate-800 flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex items-center gap-3">
+            <div className="bg-yellow-400 p-2 border-2 border-slate-900 rounded shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+              <Zap className="w-4 h-4 text-slate-900 fill-current" />
+            </div>
+            <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">
+              © {year} ChainAid Team. Yogyakarta Pride.
+            </p>
+          </div>
+          
+          <div className="bg-slate-900 border-2 border-slate-700 px-5 py-2 rounded-full flex items-center gap-3 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)]">
+            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,1)]" />
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">
+              Network Status: <span className="text-white">Sepolia Node Active</span>
             </span>
-          </p>
+          </div>
         </div>
       </div>
     </footer>

@@ -17,6 +17,25 @@ import type {
 // CAMPAIGNS API
 // ============================================================================
 
+// lib/api.ts
+
+export async function getEthPrice() {
+  try {
+    // Ambil harga ETH dalam IDR dan perubahan harganya dalam 24 jam
+    const response = await fetch(
+      'https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=idr&include_24hr_change=true'
+    );
+    const data = await response.json();
+    return {
+      price: data.ethereum.idr,
+      change: data.ethereum.idr_24h_change
+    };
+  } catch (error) {
+    console.error("Gagal ambil harga ETH:", error);
+    return { price: 42000000, change: 0 }; // Fallback harga kalau API limit
+  }
+}
+
 /**
  * Get all campaigns with filters and pagination
  */

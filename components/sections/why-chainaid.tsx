@@ -1,82 +1,102 @@
 "use client"
 
-import { Shield, Zap, Lock, TrendingUp } from "lucide-react"
+import { Shield, Zap, Lock, TrendingUp, Star } from "lucide-react"
 
 const features = [
   {
-    title: "Transparansi Penuh",
-    description: "Setiap transaksi dapat diverifikasi dan dilacak di blockchain",
+    title: "TRANSPARANSI PENUH",
+    description: "Setiap transaksi dapat diverifikasi dan dilacak oleh siapa pun di jaringan blockchain.",
     icon: TrendingUp,
-    color: "from-blue-500 to-cyan-500",
-    bgColor: "bg-blue-50",
+    accentColor: "bg-blue-500",
   },
   {
-    title: "Berbasis Blockchain",
-    description: "Teknologi terdesentralisasi yang aman dan tidak dapat diubah",
+    title: "KEAMANAN BLOCKCHAIN",
+    description: "Teknologi terdesentralisasi memastikan data aman dan tidak dapat dimanipulasi.",
     icon: Lock,
-    color: "from-purple-500 to-indigo-500",
-    bgColor: "bg-purple-50",
+    accentColor: "bg-purple-500",
   },
   {
-    title: "Mudah & Aman",
-    description: "Interface intuitif dengan enkripsi tingkat enterprise",
+    title: "MUDAH & AMAN",
+    description: "Antarmuka yang intuitif dengan sistem keamanan tingkat tinggi untuk aset Anda.",
     icon: Shield,
-    color: "from-green-500 to-emerald-500",
-    bgColor: "bg-green-50",
+    accentColor: "bg-green-500",
   },
   {
-    title: "Lacak Real-time",
-    description: "Monitor penggunaan dana secara langsung dan real-time",
+    title: "LACAK REAL-TIME",
+    description: "Pantau penggunaan dana secara langsung tanpa ada yang ditutup-tutupi.",
     icon: Zap,
-    color: "from-yellow-500 to-orange-500",
-    bgColor: "bg-yellow-50",
+    accentColor: "bg-yellow-400",
   },
 ]
 
 export function WhyChainAid() {
   return (
-    <section className="relative bg-gradient-to-b from-slate-50/50 via-blue-50/30 to-slate-50/50 py-16 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-8 overflow-hidden">
-      {/* Decorative background */}
-      <div className="absolute top-1/2 left-0 w-96 h-96 bg-blue-200/20 rounded-full blur-3xl" />
-      <div className="absolute top-1/2 right-0 w-96 h-96 bg-purple-200/20 rounded-full blur-3xl" />
+    <section className="bg-white py-24 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+      {/* ELEMEN DEKORATIF – Garis Kisi (Grid) */}
+      <div className="absolute inset-0 opacity-[0.05] pointer-events-none" 
+           style={{ backgroundImage: 'radial-gradient(#000 1px, transparent 1px)', backgroundSize: '30px 30px' }} />
 
       <div className="relative z-10 max-w-7xl mx-auto space-y-16">
-        <div className="space-y-4 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 border border-blue-100">
-            <span className="text-sm font-medium text-blue-900">🚀 Keunggulan Kami</span>
+        
+        {/* HEADER SEKSI */}
+        <div className="flex flex-col items-center text-center space-y-6">
+          <div className="inline-flex items-center gap-2 px-6 py-2 bg-yellow-400 border-4 border-slate-900 rounded-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] rotate-2">
+            <Star className="w-5 h-5 text-slate-900 fill-current" />
+            <span className="text-xs font-black uppercase tracking-[0.2em] text-slate-900">Keunggulan Utama</span>
           </div>
-          <h2 className="text-4xl sm:text-5xl font-bold bg-gradient-to-br from-slate-900 to-slate-700 bg-clip-text text-transparent">
-            Kenapa ChainAid?
+          <h2 className="text-5xl md:text-8xl font-black text-slate-900 tracking-tighter uppercase italic leading-none">
+            KENAPA <span className="text-blue-600 not-italic">CHAINAID?</span>
           </h2>
-          <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-            Platform donasi yang menggabungkan kepercayaan, teknologi, dan dampak sosial
+          <p className="text-xl font-bold text-slate-500 max-w-2xl uppercase italic tracking-tight">
+            Platform donasi masa depan yang menggabungkan kepercayaan mutlak dengan teknologi mutakhir.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        {/* GRID FITUR */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
           {features.map((feature, index) => {
             const Icon = feature.icon
             return (
               <div
                 key={index}
-                className="group relative bg-white rounded-2xl p-6 shadow-sm hover:shadow-xl transition-all duration-300 border border-slate-100 hover:border-slate-200"
+                className="group relative cursor-pointer"
               >
-                {/* Icon */}
-                <div className={`inline-flex items-center justify-center w-14 h-14 rounded-xl ${feature.bgColor} mb-4 group-hover:scale-110 transition-transform duration-300`}>
-                  <Icon className={`w-7 h-7 bg-gradient-to-br ${feature.color} bg-clip-text`} style={{ WebkitTextFillColor: 'transparent' }} />
-                </div>
+                {/* LAPISAN BAYANGAN (SHADOW BOX) */}
+                <div className="absolute inset-0 bg-slate-900 border-4 border-slate-900 rounded-[2.5rem] translate-x-3 translate-y-3 group-hover:translate-x-0 group-hover:translate-y-0 transition-all duration-300" />
+                
+                {/* KARTU UTAMA */}
+                <div className="relative bg-white border-4 border-slate-900 rounded-[2.5rem] p-8 h-full flex flex-col space-y-6 group-hover:-translate-x-1 group-hover:-translate-y-1 transition-all duration-300">
+                  
+                  {/* IKON DENGAN BACKGROUND AKSEN */}
+                  <div className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl border-4 border-slate-900 ${feature.accentColor} shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] group-hover:scale-110 transition-transform duration-300`}>
+                    <Icon className="w-8 h-8 text-white stroke-[3px]" />
+                  </div>
 
-                {/* Content */}
-                <div className="space-y-2">
-                  <h3 className="text-xl font-bold text-slate-900">{feature.title}</h3>
-                  <p className="text-slate-600 leading-relaxed">{feature.description}</p>
-                </div>
+                  {/* KONTEN TEKS */}
+                  <div className="space-y-3">
+                    <h3 className="text-2xl font-black text-slate-900 tracking-tighter uppercase italic leading-tight">
+                      {feature.title}
+                    </h3>
+                    <p className="text-sm font-bold text-slate-500 leading-relaxed uppercase tracking-tight">
+                      {feature.description}
+                    </p>
+                  </div>
 
-                {/* Decorative gradient */}
-                <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${feature.color} opacity-0 group-hover:opacity-5 transition-opacity duration-300`} />
+                  {/* DEKORASI SUDUT */}
+                  <div className={`absolute bottom-6 right-8 w-8 h-8 ${feature.accentColor} opacity-20 rounded-full blur-xl group-hover:opacity-100 transition-opacity`} />
+                </div>
               </div>
             )
           })}
+        </div>
+
+        {/* FOOTER SEKSI (CTA KECIL) */}
+        <div className="pt-12 flex justify-center">
+          <div className="p-10 border-4 border-dashed border-slate-300 rounded-[3rem] text-center max-w-3xl w-full">
+            <p className="text-sm font-black text-slate-400 uppercase tracking-[0.3em]">
+              Siap untuk membuat dampak nyata?
+            </p>
+          </div>
         </div>
       </div>
     </section>

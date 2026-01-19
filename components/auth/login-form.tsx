@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Eye, EyeOff, Loader2 } from "lucide-react"
+import { Eye, EyeOff, Loader2, AlertCircle, ShieldCheck } from "lucide-react"
 
 export function LoginForm() {
   const router = useRouter()
@@ -23,21 +23,21 @@ export function LoginForm() {
 
     try {
       const supabase = createClient()
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { data, error: authError } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
 
-      if (error) throw error
+      if (authError) throw authError
 
-      // Get user profile to check role
+      // Mengambil profil pengguna untuk pengecekan peran (role)
       const { data: profile } = await supabase
         .from("profiles")
         .select("role")
         .eq("id", data.user.id)
         .single()
 
-      // Redirect based on role
+      // Pengalihan berdasarkan peran
       if (profile?.role === "admin") {
         router.push("/admin")
       } else if (profile?.role === "org") {
@@ -48,39 +48,46 @@ export function LoginForm() {
       
       router.refresh()
     } catch (error: any) {
-      setError(error.message || "Login gagal. Silakan coba lagi.")
+      setError(error.message?.toUpperCase() || "LOGIN GAGAL. PERIKSA KEMBALI KREDENSIAL ANDA.")
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <form onSubmit={handleLogin} className="space-y-4">
-      {/* Error Message */}
+    <form onSubmit={handleLogin} className="space-y-6">
+      {/* Pesan Galat */}
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-          {error}
+        <div className="bg-red-400 border-4 border-slate-900 p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-center gap-3 animate-bounce">
+          <AlertCircle className="w-6 h-6 text-slate-900 shrink-0" />
+          <p className="text-[10px] font-black text-slate-900 uppercase leading-none">
+            {error}
+          </p>
         </div>
       )}
 
-      {/* Email Field */}
+      {/* Bidang Email */}
       <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
+        <Label htmlFor="email" className="text-xs font-black uppercase tracking-widest text-slate-900 italic">
+          Alamat Email
+        </Label>
         <Input
           id="email"
           type="email"
-          placeholder="nama@example.com"
+          placeholder="NAMA@EXAMPLE.COM"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
           disabled={loading}
-          className="h-11"
+          className="h-14 border-4 border-slate-900 rounded-xl bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus-visible:ring-0 focus-visible:translate-x-[2px] focus-visible:translate-y-[2px] focus-visible:shadow-none transition-all placeholder:text-slate-300 font-bold uppercase italic"
         />
       </div>
 
-      {/* Password Field */}
+      {/* Bidang Kata Sandi */}
       <div className="space-y-2">
-        <Label htmlFor="password">Password</Label>
+        <Label htmlFor="password" className="text-xs font-black uppercase tracking-widest text-slate-900 italic">
+          Kata Sandi
+        </Label>
         <div className="relative">
           <Input
             id="password"
@@ -90,12 +97,12 @@ export function LoginForm() {
             onChange={(e) => setPassword(e.target.value)}
             required
             disabled={loading}
-            className="h-11 pr-10"
+            className="h-14 border-4 border-slate-900 rounded-xl bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus-visible:ring-0 focus-visible:shadow-none transition-all font-bold pr-12"
           />
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-900"
             tabIndex={-1}
           >
             {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
@@ -103,23 +110,33 @@ export function LoginForm() {
         </div>
       </div>
 
-      {/* Remember Me & Forgot Password */}
-      <div className="flex items-center justify-between text-sm">
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input type="checkbox" className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
-          <span className="text-slate-600">Ingat saya</span>
+      {/* Ingat Saya */}
+      <div className="flex items-center justify-between">
+        <label className="flex items-center gap-3 cursor-pointer group">
+          <div className="relative flex items-center">
+            <input 
+              type="checkbox" 
+              className="peer appearance-none w-6 h-6 border-4 border-slate-900 rounded-md bg-white checked:bg-yellow-400 transition-all cursor-pointer" 
+            />
+            <ShieldCheck className="absolute w-4 h-4 text-slate-900 left-1 opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none" />
+          </div>
+          <span className="text-[11px] font-black uppercase tracking-tighter text-slate-600 group-hover:text-slate-900">Ingat Perangkat Ini</span>
         </label>
       </div>
 
-      {/* Submit Button */}
-      <Button type="submit" className="w-full h-11 bg-blue-600 hover:bg-blue-700" disabled={loading}>
+      {/* Tombol Login */}
+      <Button 
+        type="submit" 
+        disabled={loading}
+        className="w-full h-16 bg-blue-600 hover:bg-blue-600 border-4 border-slate-900 rounded-2xl shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all text-white text-xl font-black uppercase italic tracking-tighter"
+      >
         {loading ? (
-          <>
-            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-            Memproses...
-          </>
+          <div className="flex items-center gap-3">
+            <Loader2 className="w-6 h-6 animate-spin text-yellow-400" />
+            <span>AUTENTIKASI...</span>
+          </div>
         ) : (
-          "Login"
+          "MASUK SEKARANG"
         )}
       </Button>
     </form>
