@@ -45,8 +45,9 @@ import {
 } from "lucide-react"
 import { toast } from "sonner"
 import type { Organization, Profile } from "@/lib/types"
-import { getOrganizationDetail } from "@/lib/fastapi"
-import { generateAndDownloadOrganizationPDF } from "@/lib/pdf-generator"
+// DISABLED: FastAPI integration and PDF generation
+// import { getOrganizationDetail } from "@/lib/fastapi"
+// import { generateAndDownloadOrganizationPDF } from "@/lib/pdf-generator"
 
 const STATUS_CONFIG = {
   approved: { label: "Disetujui", className: "bg-green-100 text-green-800 hover:bg-green-100" },
@@ -202,6 +203,11 @@ export default function OrganisasiPage() {
   }
 
   const handlePrintOrganization = async (org: Organization) => {
+    // DISABLED: FastAPI and PDF generation feature
+    toast.error("Fitur print PDF telah dinonaktifkan")
+    return
+    
+    /* ORIGINAL CODE - DISABLED
     setPrintLoading(org.id)
     try {
       toast.loading("Mengambil data organisasi...", { id: 'print-org' })
@@ -221,6 +227,7 @@ export default function OrganisasiPage() {
     } finally {
       setPrintLoading(null)
     }
+    */
   }
 
   const formatDate = (dateString: string | null) => {
